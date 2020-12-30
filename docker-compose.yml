@@ -1,0 +1,15 @@
+version: "3.8"
+services:
+  musicblocks:
+    build: ./
+    image: ghcr.io/sugarlabs/musicblocks:initial
+    env_file:
+      - ./env/development.env
+    ports:
+      - "5000:3000"
+      - "5001:80"
+    volumes:
+      - ./:/app/
+    container_name: musicblocks
+    stdin_open: true
+    tty: true
