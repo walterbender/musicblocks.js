@@ -20,6 +20,49 @@ DOUBLESHARP = "𝄪"
 DOUBLEFLAT = "𝄫"
 
 
+def strip_accidental(pitch):
+    """
+    Remove an accidental and return the number of half steps that
+    would have resulted from its application to the pitch
+
+    Parameters
+    ----------
+    pitch : str
+        Upper or lowecase pitch name with accidentals as ASCII or Unicode
+
+    Returns
+    -------
+    str
+        Normalized pitch name
+    int
+        Change in half steps represented by the removed accidental
+    """
+    if len(pitch) == 1:
+        return pitch, 0
+    # The ASCII versions
+    if pitch.endswith("bb"):
+        return pitch.strip("bb"), -2
+    if pitch.endswith("b"):
+        return pitch.strip("b"), -1
+    if pitch.endswith("#"):
+        return pitch.rstrip("#"), 1
+    if pitch.endswith("x"):
+        return pitch.rstrip("x"), 2
+    # And the Unicode versions...
+    if pitch.endswith(DOUBLEFLAT):
+        return pitch.strip(DOUBLEFLAT), -2
+    if pitch.endswith(FLAT):
+        return pitch.strip(FLAT), -1
+    if pitch.endswith(SHARP):
+        return pitch.rstrip(SHARP), 1
+    if pitch.endswith(DOUBLESHARP):
+        return pitch.rstrip(DOUBLESHARP), 2
+    if pitch.endswith(NATURAL):
+        return pitch.rstrip(NATURAL), 0
+    # No accidentals were present.
+    return pitch, 0
+
+
 def normalize_pitch(pitch):
     """
     Internally, we use a standardize form for our pitch letter names:
@@ -33,7 +76,7 @@ def normalize_pitch(pitch):
     Parameters
     ----------
     pitch : str
-        Upper or lowecase pitch name with accidentals as ascii or unicode
+        Upper or lowecase pitch name with accidentals as ASCII or Unicode
 
     Returns
     -------
@@ -60,7 +103,7 @@ def display_pitch(pitch):
     Parameters
     ----------
     pitch : str
-        Upper or lowecase pitch name with accidentals as ascii or unicode
+        Upper or lowecase pitch name with accidentals as ASCII or Unicode
 
     Returns
     -------
@@ -673,46 +716,131 @@ class KeySignature:
     # These note defintions are only relevant to equal temperament.
     NOTES_SHARP = ["c", "c#", "d", "d#", "e", "f", "f#", "g", "g#", "a", "a#", "b"]
     NOTES_FLAT = ["c", "db", "d", "eb", "e", "f", "gb", "g", "ab", "a", "bb", "b"]
+
+    MODE_MAPPER = {
+        "ionian": "major",
+        "dorian": {
+            "c": ["major", "bb"],
+            "d": ["major", "c"],
+            "e": ["major", "d"],
+            "f": ["minor", "c"],
+            "g": ["major", "f"],
+            "a": ["major", "g"],
+            "b": ["major", "a"],
+            "c#": ["major", "b"],
+            "d#": ["major", "c#"],
+            "f#": ["major", "e"],
+            "g#": ["major", "f#"],
+            "a#": ["major", "ab"],
+            "db": ["minor", "ab"],
+            "eb": ["minor", "bb"],
+            "gb": ["minor", "c#"],
+            "ab": ["minor", "eb"],
+            "bb": ["minor", "f"],
+        },
+        "phrygian": {
+            "c": ["major", "ab"],
+            "d": ["major", "bb"],
+            "e": ["major", "c"],
+            "f": ["major", "db"],
+            "g": ["minor", "c"],
+            "a": ["major", "f"],
+            "b": ["major", "g"],
+            "c#": ["major", "a"],
+            "d#": ["major", "b"],
+            "f#": ["major", "d"],
+            "g#": ["major", "e"],
+            "a#": ["major", "f#"],
+            "db": ["major", "a"],
+            "eb": ["minor", "ab"],
+            "gb": ["major", "d"],
+            "ab": ["major", "e"],
+            "bb": ["minor", "eb"],
+        },
+        "lydian": {
+            "c": ["major", "g"],
+            "d": ["major", "a"],
+            "e": ["major", "b"],
+            "f": ["major", "c"],
+            "g": ["major", "d"],
+            "a": ["major", "e"],
+            "b": ["major", "f#"],
+            "c#": ["major", "ab"],
+            "d#": ["major", "bb"],
+            "f#": ["major", "c#"],
+            "g#": ["minor", "c"],
+            "a#": ["major", "bb"],
+            "db": ["minor", "c"],
+            "eb": ["minor", "g"],
+            "gb": ["minor", "bb"],
+            "ab": ["minor", "c"],
+            "bb": ["minor", "d"],
+        },
+        "mixolydian": {
+            "c": ["major", "f"],
+            "d": ["major", "g"],
+            "e": ["major", "a"],
+            "f": ["major", "bb"],
+            "g": ["major", "c"],
+            "a": ["major", "d"],
+            "b": ["major", "e"],
+            "c#": ["major", "f#"],
+            "d#": ["major", "ab"],
+            "f#": ["major", "b"],
+            "g#": ["major", "f"],
+            "a#": ["minor", "c"],
+            "db": ["minor", "eb"],
+            "eb": ["minor", "f"],
+            "gb": ["minor", "ab"],
+            "ab": ["minor", "bb"],
+            "bb": ["minor", "c"],
+        },
+        "locrian": {
+            "c": ["major", "db"],
+            "d": ["minor", "c"],
+            "e": ["major", "f"],
+            "f": ["major", "gb"],
+            "g": ["major", "ab"],
+            "a": ["major", "bb"],
+            "b": ["major", "c"],
+            "c#": ["major", "d"],
+            "d#": ["minor", "c#"],
+            "f#": ["major", "g"],
+            "g#": ["major", "a"],
+            "a#": ["major", "b"],
+            "db": ["major", "d"],
+            "eb": ["minor", "db"],
+            "gb": ["major", "f#"],
+            "ab": ["minor", "gb"],
+            "bb": ["minor", "ab"],
+        },
+        "aeolian": "minor",
+        "natural minor": "minor",
+        "harmonic minor": "minor",
+        "major": "major",
+        "minor": "minor",
+    }
+
     PREFER_SHARPS = [
         "g major",
-        "d major",
-        "a major",
-        "e major",
-        "b major",
         "e minor",
+        "d major",
         "b minor",
-        """
-        "f# major",
-        "e# major",
-        "e# minor",
-        "c# major",
-        "d# major",
-        "f# minor",
+        "e major",
         "c# minor",
+        "db minor",
+        "b major",
         "g# minor",
-        "d# minor",
-        """,
-    ]
-    PREFER_FLATS = [  # We default to preferring flats.
-        "f major",
-        "bb major",
-        "eb major",
-        "ab major",
-        "db major",
-        "gb major",
-        "cb major",
+        "e minor",
+        "g major",
+        "e minor",
+        "a major",
+        "f# minor",
+        "gb minor",
+        "c# major",
+        "a# minor",
+        "f# major",
         "d minor",
-        "g minor",
-        "c minor",
-        "f minor",
-        "bb minor",
-        "eb minor",
-        "d harmonic minor",
-        "g harmonic minor",
-        "c harmonic minor",
-        "f harmonic minor",
-        "bb harmonic minor",
-        "eb harmonic minor",
     ]
 
     # The equivants and conversions are only valid for equal temperament.
@@ -801,6 +929,38 @@ class KeySignature:
         "gb": "f#",
     }
 
+    # SOLFNOTES is the internal representation used in selectors
+    SOLFNOTES = ["ti", "la", "sol", "fa", "mi", "re", "do"]
+    SCALENOTES = ["7", "6", "5", "4", "3", "2", "1"]
+    EASTINDIANSOLFNOTES = ["ni", "dha", "pa", "ma", "ga", "re", "sa"]
+    ACCIDENTALVALUES = [2, 1, 0, -1, -2]
+    MAQAMTABLE = {
+        "hijaz kar": "C maqam",
+        "hijaz kar maqam": "C maqam",
+        "shahnaz": "D maqam",
+        "maqam mustar": "Eb maqam",
+        "maqam jiharkah": "F maqam",
+        "shadd araban": "G maqam",
+        "suzidil": "A maqam",
+        "ajam": "Bb maqam",
+        "ajam maqam": "Bb maqam",
+    }
+    # Approximate mapping of mode to solfege (Used by modes where the length !== 7).
+    SOLFMAPPER = [
+        "do",
+        "do",
+        "re",
+        "re",
+        "mi",
+        "fa",
+        "fa",
+        "sol",
+        "sol",
+        "la",
+        "la",
+        "ti",
+    ]
+
     def __init__(self, mode="major", key="c", number_of_semitones=12):
         """
         In defining a scale, we need to know the key, the mode, and the
@@ -824,10 +984,14 @@ class KeySignature:
         """
         self.number_of_semitones = number_of_semitones
 
-        # Define generic note names.
+        # Define generic note names that map to temperament.
         self.note_names = []
         for i in range(self.number_of_semitones):
             self.note_names.append("n%d" % i)
+        # Solfege notes may be available
+        self.solfege_notes = []
+        # Custom note names may also be available
+        self.custom_note_names = []
 
         # We handle 12-semitone temperaments differently since they
         # can use letter name and predefined modes.
@@ -927,6 +1091,12 @@ class KeySignature:
         self.key_signature = "%s %s" % (self.key, self.mode)
         self._build_scale()
 
+    def _assign_solfege_names(self):
+        """
+        Create a solfege mapping of the scale.
+        """
+        pass
+
     def get_scale(self):
         """
         The (scalar) notes in the scale.
@@ -964,15 +1134,25 @@ class KeySignature:
         """
         return self.number_of_semitones
 
-    def set_note_names(self, note_names):
+    def set_custom_note_names(self, note_names):
         """
-        Generic note names are defined by the temperament.
+        Custom note names defined by ???
         """
-        self.note_names = note_names[:]
+        if len(note_names) != self.number_of_semitones:
+            print("A unique name must be assigned to every semitone.")
+            return -1
+        self.custom_note_names = note_names[:]
+        return 0
+
+    def get_custom_note_names(self):
+        """
+        Custom note names defined by ???
+        """
+        return self.custom_note_names
 
     def letter_name_to_note_name(self, pitch_name):
         """
-        Convert from letter names used by 12-semitone temperaments to
+        Convert from a letter name used by 12-semitone temperaments to
         a generic note name as defined by the temperament.
         NOTE: Only for temperaments with 12 semitones.
         """
@@ -990,6 +1170,30 @@ class KeySignature:
             return self.note_names[self.NOTES_FLAT.index(pitch_name)], 0
 
         print("Pitch name %s not found." % pitch_name)
+        return "", -1
+
+    def note_name_to_letter_name(self, note_name, prefer_sharps=True):
+        """
+        Convert from a generic note name as defined by the temperament
+        to a letter name used by 12-semitone temperaments.
+        NOTE: Only for temperaments with 12 semitones.
+        """
+        note_name = normalize_pitch(note_name)
+        # Maybe it is already a letter name.
+        if note_name in self.NOTES_SHARP:
+            return note_name, 0
+        if note_name in self.NOTES_FLAT:
+            return note_name, 0
+        if self.number_of_semitones != 12:
+            print("Cannot convert %s to a letter name." % note_name)
+            return "", -1
+
+        if note_name in self.note_names:
+            if prefer_sharps:
+                return self.NOTES_SHARP[self.note_names.index(note_name)], 0
+            return self.NOTES_FLAT[self.note_names.index(note_name)], 0
+
+        print("Note name %s not found." % note_name)
         return "", -1
 
     def modal_pitch_to_letter(self, modal_index):
@@ -1041,6 +1245,36 @@ class KeySignature:
         """
         return self.closest_note(target)[2] == 0
 
+    def _map_to_semitone_range(self, i, delta_octave):
+        """
+        Ensure that an index value is within the range of the temperament, e.g.,
+        i == 12 would be mapped to 0 with a change in octave +1 for a
+        temperament with 12 semitones.
+
+        Parameters
+        ----------
+        i : int
+            Index value into semitones
+
+        delta_octave : int
+            Any previous change in octave that needs to be preserved
+
+        Returns
+        -------
+        int
+            Index mapped to semitones
+
+        int
+            Any additonal change in octave due to mapping
+        """
+        while i < 0:
+            i += self.number_of_semitones
+            delta_octave -= 1
+        while i > self.number_of_semitones - 1:
+            i -= self.number_of_semitones
+            delta_octave += 1
+        return i, delta_octave
+
     def semitone_transform(self, starting_pitch, number_of_half_steps):
         """
         Given a starting pitch, add a semitone transform and return
@@ -1074,50 +1308,66 @@ class KeySignature:
             if starting_pitch in self.NOTES_SHARP:
                 i = self.NOTES_SHARP.index(starting_pitch)
                 i += number_of_half_steps
-                while i < 0:
-                    i += self.number_of_semitones
-                    delta_octave -= 1
-                while i > self.number_of_semitones - 1:
-                    i -= self.number_of_semitones
-                    delta_octave += 1
+                i, delta_octave = self._map_to_semitone_range(i, delta_octave)
                 return self.NOTES_SHARP[i], delta_octave, 0
             elif starting_pitch in self.NOTES_FLAT:
                 i = self.NOTES_FLAT.index(starting_pitch)
                 i += number_of_half_steps
-                while i < 0:
-                    i += self.number_of_semitones
-                    delta_octave -= 1
-                while i > self.number_of_semitones - 1:
-                    i -= self.number_of_semitones
-                    delta_octave += 1
+                i, delta_octave = self._map_to_semitone_range(i, delta_octave)
                 return self.NOTES_FLAT[i], delta_octave, 0
-            elif starting_pitch in self.note_names:
-                i = self.note_names.index(starting_pitch)
-                i += number_of_half_steps
-                while i < 0:
-                    i += self.number_of_semitones
-                    delta_octave -= 1
-                while i > self.number_of_semitones - 1:
-                    i -= self.number_of_semitones
-                    delta_octave += 1
-                return self.note_names[i], delta_octave, 0
             else:
-                print("Cannot find %s in note names." % starting_pitch)
-                return starting_pitch, 0, -1
+                stripped_pitch, delta = strip_accidental(starting_pitch)
+                if stripped_pitch in self.note_names:
+                    i = self.note_names.index(stripped_pitch)
+                    i += number_of_half_steps
+                    i, delta_octave = self._map_to_semitone_range(
+                        i + delta, delta_octave
+                    )
+                    return self.note_names[i], delta_octave, 0
+                else:
+                    print("Cannot find %s in note names." % starting_pitch)
+                    return starting_pitch, 0, -1
         else:
-            if starting_pitch in self.note_names:
-                i = self.note_names.index(starting_pitch)
+            stripped_pitch, delta = strip_accidental(starting_pitch)
+            if stripped_pitch in self.note_names:
+                i = self.note_names.index(stripped_pitch)
                 i += number_of_half_steps
-                while i < 0:
-                    i += self.number_of_semitones
-                    delta_octave -= 1
-                while i > self.number_of_semitones - 1:
-                    i -= self.number_of_semitones
-                    delta_octave += 1
+                i, delta_octave = self._map_to_semitone_range(i + delta, delta_octave)
                 return self.note_names[i], delta_octave, 0
             else:
                 print("Cannot find %s in note names." % starting_pitch)
                 return starting_pitch, 0, -1
+
+    def _map_to_scalar_range(self, i, delta_octave):
+        """
+        Ensure that an index value is within the range of the scale, e.g.,
+        i == 8 would be mapped to 0 with a change in octave +1 for a
+        7-tone scale.
+
+        Parameters
+        ----------
+        i : int
+            Index value into scale
+
+        delta_octave : int
+            Any previous change in octave that needs to be preserved
+
+        Returns
+        -------
+        int
+            Index mapped to scale
+
+        int
+            Any additonal change in octave due to mapping
+        """
+        mode_length = self.get_mode_length()
+        while i < 0:
+            i += mode_length
+            delta_octave -= 1
+        while i > mode_length - 1:
+            i -= mode_length
+            delta_octave += 1
+        return i, delta_octave
 
     def scalar_transform(self, starting_pitch, number_of_scalar_steps):
         """
@@ -1146,10 +1396,10 @@ class KeySignature:
         int
             error code
         """
-
         starting_pitch = normalize_pitch(starting_pitch)
 
-        # First, we need to find the closest note to our starting pitch.
+        # First, we need to find the closest note to our starting
+        # pitch.
         closest, closest_index, distance, error_code = self.closest_note(starting_pitch)
         if error_code < 0:
             return starting_pitch, 0, error_code
@@ -1181,16 +1431,19 @@ class KeySignature:
         if distance == 0:
             return new_note, delta_octave
 
-        # TODO: Handle accidentals for non-12-semitone temperaments
+        # Accidentals for non-12-semitone temperaments are removed
+        # inside closest_note.
+        if self.number_of_semitones != 12:
+            i += distance
+            i, delta_octave = self._map_to_scalar_range(i, delta_octave)
+            return self.note_names[i], delta_octave
+
         if "#" in starting_pitch:
             i = self.NOTES_SHARP.index(new_note)
         else:
             i = self.NOTES_FLAT.index(new_note)
         i += distance
-        if i < 0:
-            i += mode_length
-        elif i > mode_length:
-            i -= mode_length
+        i, delta_octave = self._map_to_scalar_range(i, delta_octave)
 
         if "#" in starting_pitch:
             return self.NOTES_SHARP[i], delta_octave
@@ -1215,7 +1468,7 @@ class KeySignature:
             (If the target is midway between two scalar pitches, the
             lower pitch is returned.)
         int
-            The distance in semitones (half-steps) from the target
+            The distance in semitones (half steps) from the target
             pitch to the scalar pitch (If the target is higher than
             the scalar pitch, then distance > 0. If the target is
             lower than the scalar pitch then distance < 0. If the
@@ -1226,6 +1479,12 @@ class KeySignature:
         target = normalize_pitch(target)
         # Handle temperaments with more than 12 semitones separately.
         if self.number_of_semitones != 12:
+            stripped_target, delta = strip_accidental(target)
+            if stripped_target in self.note_names:
+                i = self.note_names.index(stripped_target)
+                i, delta_octave = self._map_to_semitone_range(i + delta, 0)
+            target = self.note_names[i]
+
             # First look for an exact match.
             for i in range(self.get_mode_length()):
                 if target == self.scale[i]:
@@ -1265,15 +1524,35 @@ class KeySignature:
             print("Note %s not found." % target)
             return target, 0, 0, -1
 
+        convert_to_note_name = False
+        if target[0] == "n":
+            stripped_target, delta = strip_accidental(target)
+            if stripped_target in self.note_names:
+                i = self.note_names.index(stripped_target)
+                i, delta_octave = self._map_to_semitone_range(i + delta, 0)
+            target = self.note_name_to_letter_name(
+                self.note_names[i], prefer_sharps="#" in target
+            )[0]
+            convert_to_note_name = True
+
         # First, try to find an exact match
         for i in range(self.get_mode_length()):
             if target == self.scale[i]:
+                if convert_to_note_name:
+                    target = self.letter_name_to_note_name(target)[0]
                 return target, i, 0, 0
         # Next, see if one of the equivalent notes matches
         for i in range(self.get_mode_length()):
             if target in self.EQUIVALENTS:
                 for k in self.EQUIVALENTS[target]:
                     if k == self.scale[i]:
+                        if convert_to_note_name:
+                            return (
+                                self.letter_name_to_note_name(self.scale[i])[0],
+                                i,
+                                0,
+                                0,
+                            )
                         return self.scale[i], i, 0, 0
         # Finally, look for the closest note.
         closest = self.scale[0]
@@ -1296,6 +1575,8 @@ class KeySignature:
         # This should never happen.
         if i2 == -1:
             print("Cannot find the position of target note %s" % (target))
+            if convert_to_note_name:
+                closest = self.letter_name_to_note_name(closest)[0]
             return closest, closest_idx, closest_distance, -1
 
         for i in range(self.get_mode_length()):
@@ -1316,6 +1597,8 @@ class KeySignature:
             # This should never happen.
             if i1 == -1:
                 print("Cannot find the position of %s" % (this_note))
+                if convert_to_note_name:
+                    closest = self.letter_name_to_note_name(closest)[0]
                 return closest, closest_idx, closest_distance, -1
 
             if abs(i2 - i1) < abs(closest_distance):
@@ -1326,7 +1609,25 @@ class KeySignature:
                 closest = self.scale[i]
                 closest_idx = i
                 closest_distance = i2 + self.number_of_semitones - i1
+
+        if convert_to_note_name:
+            closest = self.letter_name_to_note_name(closest)[0]
         return closest, closest_idx, closest_distance, 0
+
+    def _prefer_sharps(self, key, mode):
+        """
+        Some keys prefer to use sharps rather than flats.
+        """
+        if mode in self.MODE_MAPPER:
+            if isinstance(self.MODE_MAPPER[mode], str):
+                ks = "%s %s" % (key, self.MODE_MAPPER[mode])
+            else:
+                ks = "%s %s" % (
+                    self.MODE_MAPPER[mode][key][1],
+                    self.MODE_MAPPER[mode][key][0],
+                )
+            return ks in self.PREFER_SHARPS
+        return False
 
     def _build_scale(self):
         """
@@ -1361,7 +1662,7 @@ class KeySignature:
             return
 
         i = 0
-        if self.key_signature in self.PREFER_SHARPS:
+        if self._prefer_sharps(self.key, self.mode):
             this_scale = self.NOTES_SHARP
             if key in this_scale:
                 i = this_scale.index(key)
@@ -1393,7 +1694,7 @@ class KeySignature:
         # octave. Hence, for example, the Latin modes hve 8 notes.
         if len(self.scale) < 9:
             # Convert to preferred accidental.
-            if self.key_signature not in self.PREFER_SHARPS and "#" in self.key:
+            if not self._prefer_sharps(self.key, self.mode) and "#" in self.key:
                 for i in range(len(self.scale)):
                     if "b" in self.scale[i]:
                         if self.scale[i] in self.EQUIVALENT_SHARPS:
