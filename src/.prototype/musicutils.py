@@ -40,7 +40,7 @@ def strip_accidental(pitch):
     if len(pitch) == 1:
         return pitch, 0
     # The ASCII versions
-    if pitch.endswith("bb"):
+    if len(pitch) > 2 and pitch.endswith("bb"):
         return pitch.strip("bb"), -2
     if pitch.endswith("b"):
         return pitch.strip("b"), -1
@@ -708,6 +708,19 @@ class KeySignature:
         "fibonacci": [1, 1, 2, 3, 5],
     }
 
+    # These maqam mode names imply a specific key.
+    MAQAM_KEY_OVERRIDES = {
+        "hijaz kar": "c",
+        "hijaz kar maqam": "c",
+        "shahnaz": "d",
+        "maqam mustar": "eb",
+        "maqam jiharkah": "f",
+        "shadd araban": "g",
+        "suzidil": "a",
+        "ajam": "bb",
+        "ajam maqam": "bb",
+    }
+
     # This notation only applies to temperaments with 12 semitones.
     PITCH_LETTERS = ["c", "d", "e", "f", "g", "a", "b"]
     SHARPS = ["c#", "d#", "f#", "g#", "a#"]
@@ -717,6 +730,10 @@ class KeySignature:
     NOTES_SHARP = ["c", "c#", "d", "d#", "e", "f", "f#", "g", "g#", "a", "a#", "b"]
     NOTES_FLAT = ["c", "db", "d", "eb", "e", "f", "gb", "g", "ab", "a", "bb", "b"]
 
+    # TODO:
+    # We need to think about how to capture the notion that C Major
+    # Pentatonic should feel like G Major (and use G Major in its score.
+    # Are there preferences for chromatic? for octotonic? etc.
     MODE_MAPPER = {
         "ionian": "major",
         "dorian": {
@@ -929,37 +946,9 @@ class KeySignature:
         "gb": "f#",
     }
 
-    # SOLFNOTES is the internal representation used in selectors
-    SOLFNOTES = ["ti", "la", "sol", "fa", "mi", "re", "do"]
-    SCALENOTES = ["7", "6", "5", "4", "3", "2", "1"]
-    EASTINDIANSOLFNOTES = ["ni", "dha", "pa", "ma", "ga", "re", "sa"]
-    ACCIDENTALVALUES = [2, 1, 0, -1, -2]
-    MAQAMTABLE = {
-        "hijaz kar": "C maqam",
-        "hijaz kar maqam": "C maqam",
-        "shahnaz": "D maqam",
-        "maqam mustar": "Eb maqam",
-        "maqam jiharkah": "F maqam",
-        "shadd araban": "G maqam",
-        "suzidil": "A maqam",
-        "ajam": "Bb maqam",
-        "ajam maqam": "Bb maqam",
-    }
-    # Approximate mapping of mode to solfege (Used by modes where the length !== 7).
-    SOLFMAPPER = [
-        "do",
-        "do",
-        "re",
-        "re",
-        "mi",
-        "fa",
-        "fa",
-        "sol",
-        "sol",
-        "la",
-        "la",
-        "ti",
-    ]
+    SOLFEGE_NAMES = ["do", "re", "me", "fa", "sol", "la", "ti"]
+    SCALAR_MODE_NUMBERS = [1, 2, 3, 4, 5, 6, 7]
+    EAST_INDIAN_NAMES = ["sa", "re", "ga", "ma", "pa", "dha", "ni"]
 
     def __init__(self, mode="major", key="c", number_of_semitones=12):
         """
@@ -998,6 +987,11 @@ class KeySignature:
         if self.number_of_semitones == 12:
             if isinstance(mode, str):
                 self.mode = mode.lower()
+                # Some mode names imply a specific key.
+                if mode in self.MAQAM_KEY_OVERRIDES:
+                    # Override the key.
+                    key = self.MAQAM_KEY_OVERRIDES[mode]
+                    mode = "maqam"
                 if mode in self.MUSICAL_MODES:
                     self.mode = mode
                     self.half_steps = self.MUSICAL_MODES[self.mode]
@@ -1090,12 +1084,55 @@ class KeySignature:
 
         self.key_signature = "%s %s" % (self.key, self.mode)
         self._build_scale()
+        if self.number_of_semitones == 12:
+            self._assign_solfege_note_names()
 
-    def _assign_solfege_names(self):
+    def _assign_solfege_note_names(self):
         """
-        Create a solfege mapping of the scale.
+        Create a Solfege mapping of the scale ("fixed Solfege == True")
+
+        Examples:
+        Major: ['do', 're', 'me', 'fa', 'sol', 'la', 'ti', 'do']
+        Major Pentatonic: ['do', 're', 'me', 'sol', 'la', 'do']
+        Minor Pentatonic: ['do', 'me', 'fa', 'sol', 'ti', 'do']
+        Whole Tone: ['do', 're', 'me', 'sol', 'la', 'ti', 'do']
+        NOTE: Solfege assignment only works for temperaments of 12 semitones.
         """
-        pass
+        self.solfege_notes = []
+
+        if self.number_of_semitones != 12:
+            # TODO: We should make an exception for temperaments of 24
+            # quartertones.
+            print("No solfege for temperaments with more than 12 semitones.")
+            return
+
+        mode_length = self.get_mode_length()
+        offset = "cdefgab".index(self.scale[0][0])
+        for i in range(len(self.scale)):
+            j = "cdefgab".index(self.scale[i][0]) - offset
+            if j < 0:
+                j += len(self.SOLFEGE_NAMES)
+            if mode_length < 8:
+                # We ensured a unique letter name for each note when we
+                # built the scale.
+                self.solfege_notes.append(self.SOLFEGE_NAMES[j])
+            else:
+                # Some letters are repeated, so we need the accidentals.
+                a = strip_accidental(self.scale[i])[1]
+                if a == 0:
+                    self.solfege_notes.append(self.SOLFEGE_NAMES[j])
+                elif a == 1:
+                    self.solfege_notes.append(self.SOLFEGE_NAMES[j] + "#")
+                elif a == -1:
+                    self.solfege_notes.append(self.SOLFEGE_NAMES[j] + "b")
+                elif a == 2:
+                    self.solfege_notes.append(self.SOLFEGE_NAMES[j] + "x")
+                elif a == -2:
+                    self.solfege_notes.append(self.SOLFEGE_NAMES[j] + "bb")
+        self.solfege_notes[-1] = "do"
+        # TODO:
+        # Also, add provision for using solfege when calculating closest...
+        # Also, add provision for using E.I. solfege and scalar numbers
 
     def get_scale(self):
         """

@@ -19,7 +19,7 @@ import unittest
 import os
 from musicutils import Temperament
 from musicutils import KeySignature
-from musicutils import normalize_pitch, display_pitch
+from musicutils import normalize_pitch, display_pitch, strip_accidental
 
 SHARP = "♯"
 FLAT = "♭"
@@ -39,6 +39,13 @@ class MusicUtilsTestCase(unittest.TestCase):
         print("normalize_test")
         self.assertTrue(normalize_pitch("C" + SHARP) == "c#")
         self.assertTrue(display_pitch("c#") == "C" + SHARP)
+        self.assertTrue(strip_accidental("c#")[0] == "c")
+        self.assertTrue(strip_accidental("cbb")[0] == "c")
+        self.assertTrue(strip_accidental("cbb")[1] == -2)
+        self.assertTrue(strip_accidental("cb")[0] == "c")
+        self.assertTrue(strip_accidental("cb")[1] == -1)
+        self.assertTrue(strip_accidental("b")[0] == "b")
+        self.assertTrue(strip_accidental("b")[1] == 0)
 
     def temperament_test(self):
         print("temperament_test")
@@ -86,11 +93,26 @@ class MusicUtilsTestCase(unittest.TestCase):
         self.assertEqual(ks.closest_note("db")[0], "c")
         self.assertFalse(ks.note_in_scale("db"))
 
+        # Test the scalar and semitone transforms and test for wrap around.
         self.assertEqual(ks.scalar_transform("c", 2)[0], "e")
+        self.assertEqual(ks.scalar_transform("c", 2)[1], 0)  # no change to octave
         self.assertEqual(ks.scalar_transform("c#", 2)[0], "f")
         self.assertEqual(ks.semitone_transform("c", 2)[0], "d")
         self.assertEqual(ks.semitone_transform("c#", 2)[0], "d#")
         self.assertEqual(ks.semitone_transform("b", 1)[0], "c")
+        self.assertEqual(ks.semitone_transform("b", 1)[1], 1)  # increment octave
+        self.assertEqual(ks.semitone_transform("n3", 1)[0], "n4")
+        self.assertEqual(ks.semitone_transform("n3#", 1)[0], "n5")
+        self.assertEqual(ks.semitone_transform("n0", -1)[0], "n11")
+        self.assertEqual(ks.semitone_transform("n0", -1)[1], -1)  # decrement octave
+        self.assertEqual(ks.semitone_transform("n0b", -1)[0], "n10")
+        self.assertEqual(ks.semitone_transform("n0b", -1)[1], -1)  # decrement octave
+        self.assertEqual(ks.semitone_transform("n1b", -1)[0], "n11")
+        self.assertEqual(ks.semitone_transform("n1b", -1)[1], -1)  # decrement octave
+        self.assertEqual(ks.semitone_transform("n11x", 1)[0], "n2")
+        self.assertEqual(ks.semitone_transform("n11x", 1)[1], 1)  # increment octave
+        self.assertEqual(ks.closest_note("n10#")[0], "n11")
+        self.assertEqual(ks.closest_note("n10x")[0], "n0")
 
         t = Temperament()
         self.assertEqual(
@@ -120,6 +142,65 @@ class MusicUtilsTestCase(unittest.TestCase):
         self.assertEqual(ks.get_scale()[7], "n18")
         self.assertEqual(ks.closest_note("n12")[0], "n11")
         self.assertEqual(ks.scalar_transform("n5", 2)[0], "n9")
+        self.assertEqual(ks.closest_note("n10#")[0], "n11")
+
+        # Test equivalent mode mappings
+        keys = [
+            "c",
+            "d",
+            "e",
+            "f",
+            "g",
+            "a",
+            "b",
+            "c#",
+            "d#",
+            "f#",
+            "g#",
+            "a#",
+            "db",
+            "eb",
+            "gb",
+            "ab",
+            "bb",
+        ]
+        modes = [
+            "dorian",
+            "phrygian",
+            "lydian",
+            "mixolydian",
+            "major",
+            "minor",
+            "locrian",
+        ]
+        for m in modes:
+            for k in keys:
+                ks = KeySignature(key=k, mode=m)
+                # print(ks)
+
+        # Test Solfege mapper
+        ks = KeySignature(key="c", mode="major")
+        self.assertEqual(len(ks.solfege_notes), 8)
+
+        ks = KeySignature(key="c", mode="major pentatonic")
+        self.assertEqual(len(ks.solfege_notes), 6)
+        self.assertEqual(ks.solfege_notes[2], "me")
+        self.assertEqual(ks.solfege_notes[3], "sol")
+
+        ks = KeySignature(key="c", mode="minor pentatonic")
+        self.assertEqual(len(ks.solfege_notes), 6)
+        self.assertEqual(ks.solfege_notes[2], "fa")
+        self.assertEqual(ks.solfege_notes[3], "sol")
+
+        ks = KeySignature(key="c", mode="whole tone")
+        self.assertEqual(len(ks.solfege_notes), 7)
+        self.assertEqual(ks.solfege_notes[2], "me")
+        self.assertEqual(ks.solfege_notes[3], "sol")
+
+        ks = KeySignature(key="c", mode="chromatic")
+        self.assertEqual(len(ks.solfege_notes), 13)
+        self.assertEqual(ks.solfege_notes[2], "re")
+        self.assertEqual(ks.solfege_notes[3], "meb")
 
 
 if __name__ == "__main__":
