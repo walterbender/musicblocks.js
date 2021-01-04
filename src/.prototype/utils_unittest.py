@@ -202,6 +202,29 @@ class MusicUtilsTestCase(unittest.TestCase):
         self.assertEqual(ks.solfege_notes[2], "re")
         self.assertEqual(ks.solfege_notes[3], "meb")
 
+        ks = KeySignature()
+        self.assertEqual(ks.letter_name_to_note_name("g")[0], "n7")
+        self.assertEqual(ks.letter_name_to_note_name("sol")[0], "n7")
+        self.assertEqual(ks.letter_name_to_note_name("5")[0], "n7")
+        self.assertEqual(ks.letter_name_to_note_name("pa")[0], "n7")
+        self.assertEqual(ks.letter_name_to_note_name("g#")[0], "n8")
+        self.assertEqual(ks.letter_name_to_note_name("sol#")[0], "n8")
+        self.assertEqual(ks.letter_name_to_note_name("5#")[0], "n8")
+        self.assertEqual(ks.letter_name_to_note_name("pa#")[0], "n8")
+
+        ks.set_custom_note_names(
+            ["charlie", "delta", "echo", "foxtrot", "golf", "alfa", "bravo"]
+        )
+        self.assertEqual(ks.letter_name_to_note_name("golf")[0], "n7")
+        self.assertEqual(ks.letter_name_to_note_name("golf#")[0], "n8")
+
+        self.assertEqual(ks.semitone_transform("g", 3)[0], "a#")
+        self.assertEqual(ks.semitone_transform("n7", 3)[0], "n10")
+        self.assertEqual(ks.semitone_transform("sol", 3)[0], "n10")
+        self.assertEqual(ks.semitone_transform("5", 3)[0], "n10")
+        self.assertEqual(ks.semitone_transform("pa", 3)[0], "n10")
+        self.assertEqual(ks.semitone_transform("golf", 3)[0], "n10")
+
 
 if __name__ == "__main__":
     unittest.main()
