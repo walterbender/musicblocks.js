@@ -118,7 +118,7 @@ class MusicUtilsTestCase(unittest.TestCase):
         self.assertEqual(
             int(
                 t.get_freq_by_generic_note_name_and_octave(
-                    ks.letter_name_to_note_name("a")[0], 4
+                    ks.convert_to_generic_note_name("a")[0], 4
                 )
                 + 0.5
             ),
@@ -203,20 +203,20 @@ class MusicUtilsTestCase(unittest.TestCase):
         self.assertEqual(ks.solfege_notes[3], "meb")
 
         ks = KeySignature()
-        self.assertEqual(ks.letter_name_to_note_name("g")[0], "n7")
-        self.assertEqual(ks.letter_name_to_note_name("sol")[0], "n7")
-        self.assertEqual(ks.letter_name_to_note_name("5")[0], "n7")
-        self.assertEqual(ks.letter_name_to_note_name("pa")[0], "n7")
-        self.assertEqual(ks.letter_name_to_note_name("g#")[0], "n8")
-        self.assertEqual(ks.letter_name_to_note_name("sol#")[0], "n8")
-        self.assertEqual(ks.letter_name_to_note_name("5#")[0], "n8")
-        self.assertEqual(ks.letter_name_to_note_name("pa#")[0], "n8")
+        self.assertEqual(ks.convert_to_generic_note_name("g")[0], "n7")
+        self.assertEqual(ks.convert_to_generic_note_name("sol")[0], "n7")
+        self.assertEqual(ks.convert_to_generic_note_name("5")[0], "n7")
+        self.assertEqual(ks.convert_to_generic_note_name("pa")[0], "n7")
+        self.assertEqual(ks.convert_to_generic_note_name("g#")[0], "n8")
+        self.assertEqual(ks.convert_to_generic_note_name("sol#")[0], "n8")
+        self.assertEqual(ks.convert_to_generic_note_name("5#")[0], "n8")
+        self.assertEqual(ks.convert_to_generic_note_name("pa#")[0], "n8")
 
         ks.set_custom_note_names(
             ["charlie", "delta", "echo", "foxtrot", "golf", "alfa", "bravo"]
         )
-        self.assertEqual(ks.letter_name_to_note_name("golf")[0], "n7")
-        self.assertEqual(ks.letter_name_to_note_name("golf#")[0], "n8")
+        self.assertEqual(ks.convert_to_generic_note_name("golf")[0], "n7")
+        self.assertEqual(ks.convert_to_generic_note_name("golf#")[0], "n8")
 
         self.assertEqual(ks.semitone_transform("g", 3)[0], "a#")
         self.assertEqual(ks.semitone_transform("n7", 3)[0], "n10")
@@ -224,6 +224,65 @@ class MusicUtilsTestCase(unittest.TestCase):
         self.assertEqual(ks.semitone_transform("5", 3)[0], "n10")
         self.assertEqual(ks.semitone_transform("pa", 3)[0], "n10")
         self.assertEqual(ks.semitone_transform("golf", 3)[0], "n10")
+
+        self.assertEqual(ks.generic_note_name_to_solfege("n7")[0], "sol")
+        self.assertEqual(ks.generic_note_name_to_solfege("n8")[0], "sol#")
+        self.assertEqual(ks.generic_note_name_to_solfege("n9")[0], "la")
+        self.assertEqual(ks.generic_note_name_to_east_indian_solfege("n7")[0], "pa")
+        self.assertEqual(ks.generic_note_name_to_scalar_mode_number("n7")[0], "5")
+        self.assertEqual(ks.generic_note_name_to_custom_note_name("n7")[0], "golf")
+
+        t = Temperament()
+        ks = KeySignature()
+        ks.set_custom_note_names(
+            ["charlie", "delta", "echo", "foxtrot", "golf", "alfa", "bravo"]
+        )
+
+        self.assertEqual(
+            round(
+                t.get_freq_by_generic_note_name_and_octave(
+                    ks.convert_to_generic_note_name("g")[0], 4
+                ),
+                100,
+            ),
+            392.03,
+        )
+        self.assertEqual(
+            round(
+                t.get_freq_by_generic_note_name_and_octave(
+                    ks.convert_to_generic_note_name("sol")[0], 4
+                ),
+                100,
+            ),
+            392.03,
+        )
+        self.assertEqual(
+            round(
+                t.get_freq_by_generic_note_name_and_octave(
+                    ks.convert_to_generic_note_name("5")[0], 4
+                ),
+                100,
+            ),
+            392.03,
+        )
+        self.assertEqual(
+            round(
+                t.get_freq_by_generic_note_name_and_octave(
+                    ks.convert_to_generic_note_name("pa")[0], 4
+                ),
+                100,
+            ),
+            392.03,
+        )
+        self.assertEqual(
+            round(
+                t.get_freq_by_generic_note_name_and_octave(
+                    ks.convert_to_generic_note_name("golf")[0], 4
+                ),
+                100,
+            ),
+            392.03,
+        )
 
 
 if __name__ == "__main__":

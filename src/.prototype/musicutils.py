@@ -1254,11 +1254,11 @@ class KeySignature:
         """
         if pitch_name in source_list:
             i = source_list.index(pitch_name)
-            return self.letter_name_to_note_name(self.scale[i])[0]
+            return self.convert_to_generic_note_name(self.scale[i])[0]
         pitch_name, delta = strip_accidental(pitch_name)
         if pitch_name in source_list:
             i = source_list.index(pitch_name)
-            note_name = self.letter_name_to_note_name(self.scale[i])[0]
+            note_name = self.convert_to_generic_note_name(self.scale[i])[0]
             i = self.note_names.index(note_name)
             i += delta
             if i < 0:
@@ -1268,7 +1268,7 @@ class KeySignature:
             return self.note_names[i]
         return None
 
-    def letter_name_to_note_name(self, pitch_name):
+    def convert_to_generic_note_name(self, pitch_name):
         """
         Convert from a letter name used by 12-semitone temperaments to
         a generic note name as defined by the temperament.
@@ -1309,21 +1309,21 @@ class KeySignature:
         print("Pitch name %s not found." % pitch_name)
         return "", -1
 
-    def note_name_to_letter_name(self, note_name, prefer_sharps=True):
+    def generic_note_name_to_letter_name(self, note_name, prefer_sharps=True):
         """
         Convert from a generic note name as defined by the temperament
         to a letter name used by 12-semitone temperaments.
         NOTE: Only for temperaments with 12 semitones.
         """
         note_name = normalize_pitch(note_name)
-        # Maybe it is already a letter name.
+        # Maybe it is already a letter name?
         if note_name in self.NOTES_SHARP:
             return note_name, 0
         if note_name in self.NOTES_FLAT:
             return note_name, 0
         if self.number_of_semitones != 12:
             print("Cannot convert %s to a letter name." % note_name)
-            return "", -1
+            return note_name, -1
 
         if note_name in self.note_names:
             if prefer_sharps:
@@ -1331,7 +1331,84 @@ class KeySignature:
             return self.NOTES_FLAT[self.note_names.index(note_name)], 0
 
         print("Note name %s not found." % note_name)
-        return "", -1
+        return note_name, -1
+
+    def _convert_from_note_name(self, note_name, target_list):
+        note_name = normalize_pitch(note_name)
+        # Maybe it is already in the list?
+        if note_name in target_list:
+            return note_name, 0
+        if self.number_of_semitones != 12:
+            print("Cannot convert %s to a letter name." % note_name)
+            return note_name, -1
+
+        if note_name in self.note_names:
+            # First find the corresponding letter name
+            letter_name = self.NOTES_SHARP[self.note_names.index(note_name)]
+            # Next, find the closest note in the scale.
+            closest, i, distance, e = self.closest_note(letter_name)
+            # Use the index to get the corresponding solfege note
+            if distance == 0:
+                return target_list[i], 0
+            # Remove any accidental
+            target_note, delta = strip_accidental(target_list[i])
+            # Add back in the appropriate accidental
+            delta += distance
+            if delta == 0:
+                return target_note, 0
+            elif delta == -1:
+                return target_note + "b", 0
+            elif delta == 1:
+                return target_note + "#", 0
+            elif delta == -2:
+                return target_note + "bb", 0
+            elif delta == 2:
+                return target_note + "#", 0
+            else:
+                print(
+                    "Could not add accidental for delta %d to %s."
+                    % (delta, target_note)
+                )
+                return target_note, -1
+
+        print("Note name %s not found." % note_name)
+        return note_name, -1
+
+    def generic_note_name_to_solfege(self, note_name):
+        """
+        Convert from a generic note name as defined by the temperament
+        to a solfege note used by 12-semitone temperaments.
+        NOTE: Only for temperaments with 12 semitones.
+        """
+
+        return self._convert_from_note_name(note_name, self.solfege_notes)
+
+    def generic_note_name_to_east_indian_solfege(self, note_name):
+        """
+        Convert from a generic note name as defined by the temperament
+        to an East Indian solfege note used by 12-semitone temperaments.
+        NOTE: Only for temperaments with 12 semitones.
+        """
+
+        return self._convert_from_note_name(note_name, self.east_indian_solfege_notes)
+
+    def generic_note_name_to_scalar_mode_number(self, note_name):
+        """
+        Convert from a generic note name as defined by the temperament
+        to a scalar mode number used by 12-semitone temperaments.
+        NOTE: Only for temperaments with 12 semitones.
+        """
+
+        return self._convert_from_note_name(note_name, self.scalar_mode_numbers)
+
+    def generic_note_name_to_custom_note_name(self, note_name):
+        """
+        Convert from a generic note name as defined by the temperament
+        to a custom_note_name used by 12-semitone temperaments.
+        NOTE: Only for temperaments with 12 semitones.
+        """
+
+        return self._convert_from_note_name(note_name, self.custom_note_names)
 
     def modal_pitch_to_letter(self, modal_index):
         """
@@ -1458,7 +1535,7 @@ class KeySignature:
                     note_name = stripped_pitch
                     e = 0
                 else:
-                    note_name, e = self.letter_name_to_note_name(stripped_pitch)
+                    note_name, e = self.convert_to_generic_note_name(stripped_pitch)
                 if e == 0:
                     if note_name in self.note_names:
                         i = self.note_names.index(note_name)
@@ -1618,142 +1695,145 @@ class KeySignature:
             error code (0 means success)
         """
         target = normalize_pitch(target)
-        # Handle temperaments with more than 12 semitones separately.
-        if self.number_of_semitones != 12:
-            stripped_target, delta = strip_accidental(target)
-            if stripped_target in self.note_names:
-                i = self.note_names.index(stripped_target)
-                i, delta_octave = self._map_to_semitone_range(i + delta, 0)
-            target = self.note_names[i]
+        if self.number_of_semitones == 12:
+            original_notation = None
+            convert_to_generic_note_name = False
+            # TODO: Figure out what notation is used here.
+            if target[0] == "n":
+                stripped_target, delta = strip_accidental(target)
+                if stripped_target in self.note_names:
+                    i = self.note_names.index(stripped_target)
+                    i, delta_octave = self._map_to_semitone_range(i + delta, 0)
+                target = self.generic_note_name_to_letter_name(
+                    self.note_names[i], prefer_sharps="#" in target
+                )[0]
+                convert_to_generic_note_name = True
+                original_notation = "note name"
 
-            # First look for an exact match.
+            # First, try to find an exact match
             for i in range(self.get_mode_length()):
                 if target == self.scale[i]:
+                    if convert_to_generic_note_name:
+                        target = self.convert_to_generic_note_name(target)[0]
                     return target, i, 0, 0
-            # Then look for the nearest note in the scale.
-            if target in self.note_names:
-                ti = self.note_names.index(target)
-                # Look up for a note in the scale.
-                distance = self.number_of_semitones
-                n = 1
-                for i in range(self.get_mode_length()):
-                    if i < ti + 1:
-                        continue
-                    if self.note_names[i] in self.scale:
-                        closest_note = self.note_names[i]
-                        distance = n
-                        break
-                    n += 1
-                # Look down.
-                n = 1
-                for i in range(ti):
-                    if self.note_names[ti - i] in self.scale:
-                        if n < distance:
-                            return (
-                                self.note_names[ti - i],
-                                self.scale.index(self.note_names[ti - i]),
-                                -n,
-                                0,
-                            )
-                        n += 1
-                if distance < self.number_of_semitones:
-                    return closest_note, self.scale.index(closest_note), distance, 0
+            # Next, see if one of the equivalent notes matches
+            for i in range(self.get_mode_length()):
+                if target in self.EQUIVALENTS:
+                    for k in self.EQUIVALENTS[target]:
+                        if k == self.scale[i]:
+                            if convert_to_generic_note_name:
+                                return (
+                                    self.convert_to_generic_note_name(self.scale[i])[0],
+                                    i,
+                                    0,
+                                    0,
+                                )
+                            return self.scale[i], i, 0, 0
+            # Finally, look for the closest note.
+            closest = self.scale[0]
+            closest_idx = 0
+            closest_distance = self.number_of_semitones
 
-                print("Closest note to %s not found." % target)
-                return target, 0, 0, -1
-
-            print("Note %s not found." % target)
-            return target, 0, 0, -1
-
-        convert_to_note_name = False
-        if target[0] == "n":
-            stripped_target, delta = strip_accidental(target)
-            if stripped_target in self.note_names:
-                i = self.note_names.index(stripped_target)
-                i, delta_octave = self._map_to_semitone_range(i + delta, 0)
-            target = self.note_name_to_letter_name(
-                self.note_names[i], prefer_sharps="#" in target
-            )[0]
-            convert_to_note_name = True
-
-        # First, try to find an exact match
-        for i in range(self.get_mode_length()):
-            if target == self.scale[i]:
-                if convert_to_note_name:
-                    target = self.letter_name_to_note_name(target)[0]
-                return target, i, 0, 0
-        # Next, see if one of the equivalent notes matches
-        for i in range(self.get_mode_length()):
-            if target in self.EQUIVALENTS:
-                for k in self.EQUIVALENTS[target]:
-                    if k == self.scale[i]:
-                        if convert_to_note_name:
-                            return (
-                                self.letter_name_to_note_name(self.scale[i])[0],
-                                i,
-                                0,
-                                0,
-                            )
-                        return self.scale[i], i, 0, 0
-        # Finally, look for the closest note.
-        closest = self.scale[0]
-        closest_idx = 0
-        closest_distance = self.number_of_semitones
-
-        i2 = -1
-        if target in self.NOTES_SHARP:
-            i2 = self.NOTES_SHARP.index(target)
-        elif target in self.NOTES_FLAT:
-            i2 = self.NOTES_FLAT.index(target)
-        else:
-            for k in self.EQUIVALENTS[target]:
-                if k in self.NOTES_SHARP:
-                    i2 = self.NOTES_SHARP.index(k)
-                    break
-                elif k in self.NOTES_FLAT:
-                    i2 = self.NOTES_FLAT.index(k)
-                    break
-        # This should never happen.
-        if i2 == -1:
-            print("Cannot find the position of target note %s" % (target))
-            if convert_to_note_name:
-                closest = self.letter_name_to_note_name(closest)[0]
-            return closest, closest_idx, closest_distance, -1
-
-        for i in range(self.get_mode_length()):
-            this_note = self.scale[i]
-            i1 = -1
-            if this_note in self.NOTES_SHARP:
-                i1 = self.NOTES_SHARP.index(this_note)
-            elif this_note in self.NOTES_FLAT:
-                i1 = self.NOTES_FLAT.index(this_note)
+            i2 = -1
+            if target in self.NOTES_SHARP:
+                i2 = self.NOTES_SHARP.index(target)
+            elif target in self.NOTES_FLAT:
+                i2 = self.NOTES_FLAT.index(target)
             else:
-                for k in self.EQUIVALENTS[this_note]:
+                for k in self.EQUIVALENTS[target]:
                     if k in self.NOTES_SHARP:
-                        i1 = self.NOTES_SHARP.index(k)
+                        i2 = self.NOTES_SHARP.index(k)
                         break
                     elif k in self.NOTES_FLAT:
-                        i1 = self.NOTES_FLAT.index(k)
+                        i2 = self.NOTES_FLAT.index(k)
                         break
             # This should never happen.
-            if i1 == -1:
-                print("Cannot find the position of %s" % (this_note))
-                if convert_to_note_name:
-                    closest = self.letter_name_to_note_name(closest)[0]
+            if i2 == -1:
+                print("Cannot find the position of target note %s" % (target))
+                if convert_to_generic_note_name:
+                    closest = self.convert_to_generic_note_name(closest)[0]
                 return closest, closest_idx, closest_distance, -1
 
-            if abs(i2 - i1) < abs(closest_distance):
-                closest = self.scale[i]
-                closest_idx = i
-                closest_distance = i2 - i1
-            if abs(i2 + self.number_of_semitones - i1) < abs(closest_distance):
-                closest = self.scale[i]
-                closest_idx = i
-                closest_distance = i2 + self.number_of_semitones - i1
+            for i in range(self.get_mode_length()):
+                this_note = self.scale[i]
+                i1 = -1
+                if this_note in self.NOTES_SHARP:
+                    i1 = self.NOTES_SHARP.index(this_note)
+                elif this_note in self.NOTES_FLAT:
+                    i1 = self.NOTES_FLAT.index(this_note)
+                else:
+                    for k in self.EQUIVALENTS[this_note]:
+                        if k in self.NOTES_SHARP:
+                            i1 = self.NOTES_SHARP.index(k)
+                            break
+                        elif k in self.NOTES_FLAT:
+                            i1 = self.NOTES_FLAT.index(k)
+                            break
+                # This should never happen.
+                if i1 == -1:
+                    print("Cannot find the position of %s" % (this_note))
+                    if convert_to_generic_note_name:
+                        closest = self.convert_to_generic_note_name(closest)[0]
+                    return closest, closest_idx, closest_distance, -1
 
-        if convert_to_note_name:
-            closest = self.letter_name_to_note_name(closest)[0]
-        return closest, closest_idx, closest_distance, 0
+                if abs(i2 - i1) < abs(closest_distance):
+                    closest = self.scale[i]
+                    closest_idx = i
+                    closest_distance = i2 - i1
+                if abs(i2 + self.number_of_semitones - i1) < abs(closest_distance):
+                    closest = self.scale[i]
+                    closest_idx = i
+                    closest_distance = i2 + self.number_of_semitones - i1
+
+            if convert_to_generic_note_name:
+                closest = self.convert_to_generic_note_name(closest)[0]
+            return closest, closest_idx, closest_distance, 0
+
+        # Handle temperaments with more than 12 semitones separately.
+        stripped_target, delta = strip_accidental(target)
+        if stripped_target in self.note_names:
+            i = self.note_names.index(stripped_target)
+            i, delta_octave = self._map_to_semitone_range(i + delta, 0)
+        target = self.note_names[i]
+
+        # First look for an exact match.
+        for i in range(self.get_mode_length()):
+            if target == self.scale[i]:
+                return target, i, 0, 0
+        # Then look for the nearest note in the scale.
+        if target in self.note_names:
+            ti = self.note_names.index(target)
+            # Look up for a note in the scale.
+            distance = self.number_of_semitones
+            n = 1
+            for i in range(self.get_mode_length()):
+                if i < ti + 1:
+                    continue
+                if self.note_names[i] in self.scale:
+                    closest_note = self.note_names[i]
+                    distance = n
+                    break
+                n += 1
+            # Look down.
+            n = 1
+            for i in range(ti):
+                if self.note_names[ti - i] in self.scale:
+                    if n < distance:
+                        return (
+                            self.note_names[ti - i],
+                            self.scale.index(self.note_names[ti - i]),
+                            -n,
+                            0,
+                        )
+                    n += 1
+            if distance < self.number_of_semitones:
+                return closest_note, self.scale.index(closest_note), distance, 0
+
+            print("Closest note to %s not found." % target)
+            return target, 0, 0, -1
+
+        print("Note %s not found." % target)
+        return target, 0, 0, -1
 
     def _prefer_sharps(self, key, mode):
         """
