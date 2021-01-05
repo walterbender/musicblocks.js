@@ -94,9 +94,34 @@ class KeySignature:
     # These defintions are only relevant to equal temperament.
     NOTES_SHARP = ["c", "c#", "d", "d#", "e", "f", "f#", "g", "g#", "a", "a#", "b"]
     NOTES_FLAT = ["c", "db", "d", "eb", "e", "f", "gb", "g", "ab", "a", "bb", "b"]
-    SOLFEGE_SHARP = ["do", "do#", "re", "re#", "me", "fa", "fa#", "sol", "sol#", "la", "la#", "ti"]
-    SOLFEGE_FLAT = ["do", "reb", "re", "meb", "me", "fa", "solb", "sol", "lab", "la", "tib", "ti"]
-
+    SOLFEGE_SHARP = [
+        "do",
+        "do#",
+        "re",
+        "re#",
+        "me",
+        "fa",
+        "fa#",
+        "sol",
+        "sol#",
+        "la",
+        "la#",
+        "ti",
+    ]
+    SOLFEGE_FLAT = [
+        "do",
+        "reb",
+        "re",
+        "meb",
+        "me",
+        "fa",
+        "solb",
+        "sol",
+        "lab",
+        "la",
+        "tib",
+        "ti",
+    ]
 
     # TODO:
     # We need to think about how to capture the notion that C Major
@@ -231,15 +256,27 @@ class KeySignature:
 
     # The equivants and conversions are only valid for equal temperament.
     EQUIVALENT_FLATS = {
-        "c#": "db", "d#": "eb", "f#": "gb", "g#": "ab", "a#": "bb", "e#": "f", "b#": "c"
+        "c#": "db",
+        "d#": "eb",
+        "f#": "gb",
+        "g#": "ab",
+        "a#": "bb",
+        "e#": "f",
+        "b#": "c",
     }
     EQUIVALENT_SHARPS = {
-        "db": "c#", "eb": "d#", "gb": "f#", "ab": "g#", "bb": "a#", "cb": "b", "fb": "e"
+        "db": "c#",
+        "eb": "d#",
+        "gb": "f#",
+        "ab": "g#",
+        "bb": "a#",
+        "cb": "b",
+        "fb": "e",
     }
     EQUIVALENTS = {
         "ax": ["b", "cb"],
         "a#": ["bb"],
-        "a": ["bbb", "gx"],
+        "a": ["a", "bbb", "gx"],
         "ab": ["g#"],
         "abb": ["g", "fx"],
         "bx": ["c#"],
@@ -254,7 +291,7 @@ class KeySignature:
         "cbb": ["bb", "a#"],
         "dx": ["e", "fb"],
         "d#": ["eb", "fbb"],
-        "d": ["ebb", "cx"],
+        "d": ["d", "ebb", "cx"],
         "db": ["c#", "bx"],
         "dbb": ["c", "b#"],
         "ex": ["f#", "gb"],
@@ -269,7 +306,7 @@ class KeySignature:
         "fbb": ["eb", "d#"],
         "gx": ["a", "bbb"],
         "g#": ["ab"],
-        "g": ["abb", "fx"],
+        "g": ["g", "abb", "fx"],
         "gb": ["f#", "ex"],
         "gbb": ["f", "e#"],
     }
@@ -370,6 +407,10 @@ class KeySignature:
                 if mode in self.MUSICAL_MODES:
                     self.mode = mode
                     self.half_steps = self.MUSICAL_MODES[self.mode]
+                else:
+                    print("Unknown mode %s. Defaulting to major mode" % (mode))
+                    self.mode = "major"
+                    self.half_steps = self.MUSICAL_MODES[self.mode]
             elif isinstance(mode, list):
                 self.mode = "custom"
                 # Check to see if the mode list is properly formed.
@@ -396,7 +437,7 @@ class KeySignature:
                         mode = mode[:-1]
                 self.half_steps = mode[:]
             else:
-                print("Unknown mode %s. Defaulting to major mode" % (mode))
+                print("Unknown mode type %s. Defaulting to major mode" % (type(mode)))
                 self.mode = "major"
                 self.half_steps = self.MUSICAL_MODES[self.mode]
             key = normalize_pitch(key)
@@ -469,6 +510,29 @@ class KeySignature:
 
     def get_fixed_solfege(self):
         return self.fixed_solfege
+
+    def normalize_scale(self, scale):
+        convert_up = False
+        convert_down = False
+        for i in range(len(scale)):
+            if "x" in scale[i]:
+                convert_up = True
+                break
+            if len(scale[i]) > 2:
+                convert_down = True
+        if convert_up:
+            for i in range(len(scale)):
+                if "x" in scale[i]:
+                    scale[i] = self.CONVERT_UP[scale[i]]
+                if scale[i] in self.EQUIVANENT_FLATS:
+                    scale[i] = self.EQUIVALENT_FLATS[scale[i]]
+        elif convert_down:
+            for i in range(len(scale)):
+                if len(scale[i]) > 2:
+                    scale[i] = self.CONVERT_DOWN[scale[i]]
+                if scale[i] in self.EQUIVALENT_SHARPS:
+                    scale[i] = self.EQUIVALENT_SHARPS[scale[i]]
+        return scale
 
     def _mode_map_list(self, source_list):
         """
@@ -833,7 +897,7 @@ class KeySignature:
         if pitch_name in self.custom_note_names:
             return "custom name"
         return "unknown"
-        
+
     def modal_pitch_to_letter(self, modal_index):
         """
         Given a modal number, return the corresponding pitch in the scale

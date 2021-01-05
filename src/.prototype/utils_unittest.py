@@ -28,6 +28,18 @@ DOUBLESHARP = "𝄪"
 DOUBLEFLAT = "𝄫"
 
 
+def compare_scales(scale1, scale2):
+    scale1 = scale1[:-1]
+    scale1.sort()
+    scale2 = scale2[:-1]
+    scale2.sort()
+
+    for i in range(len(scale1)):
+        if scale1[i] != scale2[i]:
+            return False
+    return True
+
+
 def round(f, d):
     i = f * d
     i += 0.5
@@ -144,43 +156,42 @@ class MusicUtilsTestCase(unittest.TestCase):
         self.assertEqual(ks.scalar_transform("n5", 2)[0], "n9")
         self.assertEqual(ks.closest_note("n10#")[0], "n11")
 
-        # Test equivalent mode mappings
-        keys = [
-            "c",
-            "d",
-            "e",
-            "f",
-            "g",
-            "a",
-            "b",
-            "c#",
-            "d#",
-            "e#",
-            "f#",
-            "g#",
-            "a#",
-            "b#",
-            "cb",
-            "db",
-            "eb",
-            "fb",
-            "gb",
-            "ab",
-            "bb",
-        ]
-        modes = [
-            "dorian",
-            "phrygian",
-            "lydian",
-            "mixolydian",
-            "major",
-            "minor",
-            "locrian",
-        ]
-        for m in modes:
-            for k in keys:
-                ks = KeySignature(key=k, mode=m)
-                print(ks)
+        # Test mode equivalents
+        ks = KeySignature(key="e", mode="major")
+        source = ks.normalize_scale(ks.scale)
+        ks = KeySignature(key="db", mode="minor")
+        target = ks.normalize_scale(ks.scale)
+        self.assertTrue(compare_scales(source, target))
+        ks = KeySignature(key="c#", mode="minor")
+        target = ks.normalize_scale(ks.scale)
+        self.assertTrue(compare_scales(source, target))
+        ks = KeySignature(key="eb", mode="locrian")
+        target = ks.normalize_scale(ks.scale)
+        self.assertTrue(compare_scales(source, target))
+        ks = KeySignature(key="d#", mode="locrian")
+        target = ks.normalize_scale(ks.scale)
+        self.assertTrue(compare_scales(source, target))
+        ks = KeySignature(key="b", mode="mixolydian")
+        target = ks.normalize_scale(ks.scale)
+        self.assertTrue(compare_scales(source, target))
+        ks = KeySignature(key="a", mode="lydian")
+        target = ks.normalize_scale(ks.scale)
+        self.assertTrue(compare_scales(source, target))
+        ks = KeySignature(key="g#", mode="phrygian")
+        target = ks.normalize_scale(ks.scale)
+        self.assertTrue(compare_scales(source, target))
+        ks = KeySignature(key="ab", mode="phrygian")
+        target = ks.normalize_scale(ks.scale)
+        self.assertTrue(compare_scales(source, target))
+        ks = KeySignature(key="f#", mode="dorian")
+        target = ks.normalize_scale(ks.scale)
+        self.assertTrue(compare_scales(source, target))
+        ks = KeySignature(key="gb", mode="dorian")
+        target = ks.normalize_scale(ks.scale)
+        self.assertTrue(compare_scales(source, target))
+        ks = KeySignature(key="e", mode=[2, 2, 1, 2, 2, 2, 1])
+        target = ks.normalize_scale(ks.scale)
+        self.assertTrue(compare_scales(source, target))
 
         # Test Solfege mapper
         ks = KeySignature(key="c", mode="major")
@@ -246,6 +257,12 @@ class MusicUtilsTestCase(unittest.TestCase):
         self.assertEqual(ks.get_pitch_type("5"), "scalar mode number")
         self.assertEqual(ks.get_pitch_type("golf"), "custom name")
         self.assertEqual(ks.get_pitch_type("foobar"), "unknown")
+
+        # Test fixed Solfege
+        ks = KeySignature(key="g", mode="major")
+        self.assertEqual(ks.convert_to_generic_note_name("sol")[0], "n7")
+        ks.set_fixed_solfege(True)
+        self.assertEqual(ks.convert_to_generic_note_name("do")[0], "n7")
 
         t = Temperament()
         ks = KeySignature()
