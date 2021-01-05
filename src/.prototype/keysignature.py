@@ -200,6 +200,7 @@ class KeySignature:
         "minor": "minor",
     }
 
+    # These key signaturs (and their equivalents) prefer sharps over flats.
     PREFER_SHARPS = [
         "g major",
         "e minor",
@@ -223,8 +224,12 @@ class KeySignature:
     ]
 
     # The equivants and conversions are only valid for equal temperament.
-    EQUIVALENT_FLATS = {"c#": "db", "d#": "eb", "f#": "gb", "g#": "ab", "a#": "bb"}
-    EQUIVALENT_SHARPS = {"db": "c#", "eb": "d#", "gb": "f#", "ab": "g#", "bb": "a#"}
+    EQUIVALENT_FLATS = {
+        "c#": "db", "d#": "eb", "f#": "gb", "g#": "ab", "a#": "bb", "e#": "f", "b#": "c"
+    }
+    EQUIVALENT_SHARPS = {
+        "db": "c#", "eb": "d#", "gb": "f#", "ab": "g#", "bb": "a#", "cb": "b", "fb": "e"
+    }
     EQUIVALENTS = {
         "ax": ["b", "cb"],
         "a#": ["bb"],
@@ -263,49 +268,50 @@ class KeySignature:
         "gbb": ["f", "e#"],
     }
     CONVERT_DOWN = {
-        "abb": "g",
-        "ab": "g#",
-        "a": "gx",
-        "bb": "a#",
-        "bbb": "a",
-        "b": "ax",
         "c": "b#",
         "cb": "b",
-        "c#": "bx",
+        "cbb": "a#",
         "d": "cx",
-        "dbb": "c",
         "db": "c#",
+        "dbb": "c",
         "e": "dx",
-        "ebb": "d",
         "eb": "d#",
-        "fb": "e",
+        "ebb": "d",
         "f": "e#",
-        "f#": "ex",
+        "fb": "e",
+        "fbb": "d#",
         "g": "fx",
         "gb": "f#",
         "gbb": "f",
-    }
-    CONVERT_UP = {
-        "a#": "bb",
-        "a": "bbb",
+        "a": "gx",
         "ab": "g#",
+        "abb": "g",
+        "b": "ax",
         "bb": "a#",
         "bbb": "a",
-        "b#": "c",
-        "b": "cb",
+    }
+    CONVERT_UP = {
+        "cx": "d",
         "c#": "db",
         "c": "dbb",
-        "db": "c#",
+        "dx": "e",
         "d#": "eb",
         "d": "ebb",
-        "eb": "d#",
+        "ex": "f#",
         "e#": "f",
         "e": "fb",
+        "fx": "g",
         "f#": "gb",
         "f": "gbb",
+        "gx": "a",
         "g#": "ab",
         "g": "abb",
-        "gb": "f#",
+        "ax": "b",
+        "a#": "bb",
+        "a": "bbb",
+        "bx": "c#",
+        "b#": "c",
+        "b": "cb",
     }
 
     def __init__(self, mode="major", key="c", number_of_semitones=12):
@@ -1203,7 +1209,16 @@ class KeySignature:
         if mode in self.MODE_MAPPER:
             if isinstance(self.MODE_MAPPER[mode], str):
                 ks = "%s %s" % (key, self.MODE_MAPPER[mode])
+            elif key in self.MODE_MAPPER[mode]:
+                ks = "%s %s" % (
+                    self.MODE_MAPPER[mode][key][1],
+                    self.MODE_MAPPER[mode][key][0],
+                )
             else:
+                if "#" in key:
+                    key = self.EQUIVALENT_FLATS[key]
+                else:
+                    key = self.EQUIVALENT_SHARPS[key]
                 ks = "%s %s" % (
                     self.MODE_MAPPER[mode][key][1],
                     self.MODE_MAPPER[mode][key][0],
