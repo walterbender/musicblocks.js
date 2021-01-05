@@ -94,6 +94,9 @@ class KeySignature:
     # These defintions are only relevant to equal temperament.
     NOTES_SHARP = ["c", "c#", "d", "d#", "e", "f", "f#", "g", "g#", "a", "a#", "b"]
     NOTES_FLAT = ["c", "db", "d", "eb", "e", "f", "gb", "g", "ab", "a", "bb", "b"]
+    SOLFEGE_SHARP = ["do", "do#", "re", "re#", "me", "fa", "fa#", "sol", "sol#", "la", "la#", "ti"]
+    SOLFEGE_FLAT = ["do", "reb", "re", "meb", "me", "fa", "solb", "sol", "lab", "la", "tib", "ti"]
+
 
     # TODO:
     # We need to think about how to capture the notion that C Major
@@ -346,6 +349,7 @@ class KeySignature:
             self.note_names.append("n%d" % i)
         # Solfege notes may be available
         self.solfege_notes = []
+        self.fixed_solfege = False
         # East Indian Solfege notes may be available
         self.east_indian_solfege_notes = []
         # Scalar Mode numbers may be available
@@ -459,6 +463,12 @@ class KeySignature:
             self._assign_solfege_note_names()
             self._assign_east_indian_solfege_note_names()
             self._assign_scalar_mode_numbers()
+
+    def set_fixed_solfege(self, state=False):
+        self.fixed_solfege = state
+
+    def get_fixed_solfege(self):
+        return self.fixed_solfege
 
     def _mode_map_list(self, source_list):
         """
@@ -659,9 +669,16 @@ class KeySignature:
             return self.note_names[self.NOTES_FLAT.index(pitch_name)], 0
 
         # Look for a Solfege name
-        note_name = self._name_converter(pitch_name, self.solfege_notes)
-        if note_name is not None:
-            return note_name, 0
+        if self.fixed_solfege:
+            note_name = self._name_converter(pitch_name, self.solfege_notes)
+            if note_name is not None:
+                return note_name, 0
+        else:
+            if "#" in pitch_name and pitch_name in self.SOLFEGE_SHARP:
+                return self.note_names[self.SOLFEGE_SHARP.index(pitch_name)], 0
+            if pitch_name in self.SOLFEGE_FLAT:
+                return self.note_names[self.SOLFEGE_FLAT.index(pitch_name)], 0
+
         # Look for a Custom name
         if len(self.custom_note_names) > 0:
             note_name = self._name_converter(pitch_name, self.custom_note_names)
@@ -744,14 +761,29 @@ class KeySignature:
         print("Note name %s not found." % note_name)
         return note_name, -1
 
-    def generic_note_name_to_solfege(self, note_name):
+    def generic_note_name_to_solfege(self, note_name, prefer_sharps=True):
         """
         Convert from a generic note name as defined by the temperament
         to a solfege note used by 12-semitone temperaments.
         NOTE: Only for temperaments with 12 semitones.
         """
+        if self.fixed_solfege:
+            return self._convert_from_note_name(note_name, self.solfege_notes)
 
-        return self._convert_from_note_name(note_name, self.solfege_notes)
+        note_name = normalize_pitch(note_name)
+        # Maybe it is already solfege?
+        if note_name in self.SOLFEGE_SHARP:
+            return note_name, 0
+        if note_name in self.SOLFEGE_FLAT:
+            return note_name, 0
+        if self.number_of_semitones != 12:
+            print("Cannot convert %s to a letter name." % note_name)
+            return note_name, -1
+
+        if note_name in self.note_names:
+            if prefer_sharps:
+                return self.SOLFEGE_SHARP[self.note_names.index(note_name)], 0
+            return self.SOLFEGE_FLAT[self.note_names.index(note_name)], 0
 
     def generic_note_name_to_east_indian_solfege(self, note_name):
         """
