@@ -17,8 +17,8 @@ Unit tests for musicutils
 import unittest
 
 import os
-from musicutils import Temperament
-from musicutils import KeySignature
+from temperament import Temperament
+from keysignature import KeySignature
 from musicutils import normalize_pitch, display_pitch, strip_accidental
 
 SHARP = "♯"
