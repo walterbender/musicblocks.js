@@ -11,7 +11,10 @@
 # License along with this library; if not, write to the Free Software
 # Foundation, 51 Franklin Street, Suite 500 Boston, MA 02110-1335 USA
 
+import re
+
 from musicutils import strip_accidental, normalize_pitch, display_pitch
+
 
 class KeySignature:
     """
@@ -777,6 +780,28 @@ class KeySignature:
 
         return self._convert_from_note_name(note_name, self.custom_note_names)
 
+    def get_pitch_type(self, pitch_name):
+        """
+        Pitches can be specified as a letter name, a solfege name, etc.
+        """
+        pitch_name = normalize_pitch(pitch_name)
+        if pitch_name in self.NOTES_SHARP:
+            return "letter name"
+        if pitch_name in self.NOTES_FLAT:
+            return "letter name"
+        pitch_name = strip_accidental(pitch_name)[0]
+        if pitch_name[0] == "n" and pitch_name[1:].isdecimal():
+            return "note name"
+        if pitch_name in self.SOLFEGE_NAMES:
+            return "solfege"
+        if pitch_name in self.EAST_INDIAN_NAMES:
+            return "east indian solfege"
+        if pitch_name in self.SCALAR_MODE_NUMBERS:
+            return "scalar mode number"
+        if pitch_name in self.custom_note_names:
+            return "custom name"
+        return "unknown"
+        
     def modal_pitch_to_letter(self, modal_index):
         """
         Given a modal number, return the corresponding pitch in the scale

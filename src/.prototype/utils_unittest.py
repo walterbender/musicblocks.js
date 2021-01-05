@@ -155,11 +155,15 @@ class MusicUtilsTestCase(unittest.TestCase):
             "b",
             "c#",
             "d#",
+            "e#",
             "f#",
             "g#",
             "a#",
+            "b#",
+            "cb",
             "db",
             "eb",
+            "fb",
             "gb",
             "ab",
             "bb",
@@ -176,7 +180,7 @@ class MusicUtilsTestCase(unittest.TestCase):
         for m in modes:
             for k in keys:
                 ks = KeySignature(key=k, mode=m)
-                # print(ks)
+                print(ks)
 
         # Test Solfege mapper
         ks = KeySignature(key="c", mode="major")
@@ -231,6 +235,17 @@ class MusicUtilsTestCase(unittest.TestCase):
         self.assertEqual(ks.generic_note_name_to_east_indian_solfege("n7")[0], "pa")
         self.assertEqual(ks.generic_note_name_to_scalar_mode_number("n7")[0], "5")
         self.assertEqual(ks.generic_note_name_to_custom_note_name("n7")[0], "golf")
+
+        self.assertEqual(ks.get_pitch_type("g"), "letter name")
+        self.assertEqual(ks.get_pitch_type("c#"), "letter name")
+        self.assertEqual(ks.get_pitch_type("n7"), "note name")
+        self.assertEqual(ks.get_pitch_type("n7b"), "note name")
+        self.assertEqual(ks.get_pitch_type("sol"), "solfege")
+        self.assertEqual(ks.get_pitch_type("sol#"), "solfege")
+        self.assertEqual(ks.get_pitch_type("pa"), "east indian solfege")
+        self.assertEqual(ks.get_pitch_type("5"), "scalar mode number")
+        self.assertEqual(ks.get_pitch_type("golf"), "custom name")
+        self.assertEqual(ks.get_pitch_type("foobar"), "unknown")
 
         t = Temperament()
         ks = KeySignature()
