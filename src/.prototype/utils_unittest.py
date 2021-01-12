@@ -135,6 +135,14 @@ class MusicUtilsTestCase(unittest.TestCase):
         self.assertEqual(round(f[42], 100), 55.0)  # A1
         self.assertEqual(len(t.get_note_names()), 24)
 
+        print("test tuning")
+        t = Temperament()
+        self.assertEqual(round(t.tune("a", 4, 440), 100), 16.35)
+        self.assertEqual(round(t.tune("a", 4, 441), 100), 16.39)
+        t.set_base_frequency(t.tune("a", 4, 441))
+        t.generate(name="equal")
+        self.assertEqual(round(t.get_freqs()[57], 100), 441.0)
+
     def key_signature_test(self):
         print("KEY SIGNATURE TESTS")
         ks = KeySignature(mode="major", key="c")
@@ -332,7 +340,7 @@ class MusicUtilsTestCase(unittest.TestCase):
                 ),
                 100,
             ),
-            392.03,
+            392.0,
         )
         self.assertEqual(
             round(
@@ -341,7 +349,7 @@ class MusicUtilsTestCase(unittest.TestCase):
                 ),
                 100,
             ),
-            392.03,
+            392.0,
         )
         self.assertEqual(
             round(
@@ -350,7 +358,7 @@ class MusicUtilsTestCase(unittest.TestCase):
                 ),
                 100,
             ),
-            392.03,
+            392.0,
         )
         self.assertEqual(
             round(
@@ -359,7 +367,7 @@ class MusicUtilsTestCase(unittest.TestCase):
                 ),
                 100,
             ),
-            392.03,
+            392.0,
         )
         self.assertEqual(
             round(
@@ -368,7 +376,7 @@ class MusicUtilsTestCase(unittest.TestCase):
                 ),
                 100,
             ),
-            392.03,
+            392.0,
         )
 
     def print_scales_test(self):

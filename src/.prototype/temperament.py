@@ -13,6 +13,8 @@
 
 import math
 
+from musicutils import normalize_pitch
+
 
 class Temperament:
     """
@@ -22,6 +24,10 @@ class Temperament:
     1/12 root of 2 (12 semitones per octave). Many traditional
     temperaments are based on ratios.
     """
+
+    # Pitch names used for tuning
+    SHARPS = ["c", "c#", "d", "d#", "e", "f", "f#", "g", "g#", "a", "a#", "b"]
+    FLATS = ["c", "db", "d", "eb", "e", "f", "gb", "g", "ab", "a", "bb", "b"]
 
     # The intervals define which ratios are used to define the notes
     # within a given temperament.
@@ -216,7 +222,7 @@ class Temperament:
 
     freqs = []  # Each temperament contains a list of notes in hertz.
     generic_note_names = []  # An array of names for each note in an octave
-    C0 = 16.353  # By default, we use C in Octave 0 as our base frequency.
+    C0 = 16.3516  # By default, we use C in Octave 0 as our base frequency.
 
     def __init__(self, name="equal"):
         """
@@ -228,13 +234,48 @@ class Temperament:
 
         name : str
             The name of a temperament, e.g., "equal", "just intonation". etc.
-
         """
         self.name = name
         self.octave_length = 12  # in semitones
         self.base_frequency = self.C0
         self.number_of_octaves = 8
+        self.ratios = None
+        self.intervals = None
         self.generate(self.name)
+
+    def tune(self, pitch_name, octave, frequency):
+        """
+        Calculate a base frequency based on a pitch and frequency.
+
+        Parameters
+        ----------
+        pitch_name : str
+            Pitch name, e.g. A#
+
+        octave : int
+            Octave
+
+        frequency : float
+            Frequency from which to calculate the new base frequency
+
+        Results
+        -------
+        float
+            New base frequency for C0
+        """
+        pitch_name = normalize_pitch(pitch_name)
+        if pitch_name in self.SHARPS:
+            i = self.SHARPS.index(pitch_name)
+        elif pitch_name in self.FLATS:
+            i = self.FLATS.index(pitch_name)
+        else:
+            print("pitch %s not found." % pitch_name)
+            return self.C0
+
+        if self.ratios is not None and self.intervals is not None:
+            return (frequency / (2 ** octave)) / self.ratios[self.intervals[i]]
+
+        return self.C0
 
     def set_base_frequency(self, base_frequency):
         """
@@ -448,6 +489,8 @@ class Temperament:
                 print("Unknown temperament %d; using equal temperament" % (name))
                 ratios = self.twelve_tone_equal_ratios
 
+        self.ratios = ratios
+        self.intervals = intervals
         self.octave_length = len(intervals) - 1
         self.freqs = [self.base_frequency]
 
