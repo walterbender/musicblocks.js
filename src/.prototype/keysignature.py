@@ -14,6 +14,7 @@
 import re
 
 from musicutils import strip_accidental, normalize_pitch
+from musicutils import NOTES_SHARP, NOTES_FLAT
 
 
 class Scale:
@@ -177,8 +178,6 @@ class KeySignature:
     EAST_INDIAN_NAMES = ["sa", "re", "ga", "ma", "pa", "dha", "ni"]
 
     # These defintions are only relevant to equal temperament.
-    NOTES_SHARP = ["c", "c#", "d", "d#", "e", "f", "f#", "g", "g#", "a", "a#", "b"]
-    NOTES_FLAT = ["c", "db", "d", "eb", "e", "f", "gb", "g", "ab", "a", "bb", "b"]
     SOLFEGE_SHARP = [
         "do",
         "do#",
@@ -488,11 +487,11 @@ class KeySignature:
         if isinstance(self.key, str):
             key = normalize_pitch(key)
             if self._prefer_sharps(self.key, self.mode) or "#" in self.key:
-                if not self.key in self.NOTES_SHARP:
+                if not self.key in NOTES_SHARP:
                     self.key = self.EQUIVALENT_SHARPS[self.key]
                 i = self.find_sharp_index(self.key)
-            elif self.key in self.NOTES_FLAT or "b" in self.key:
-                if not self.key in self.NOTES_FLAT:
+            elif self.key in NOTES_FLAT or "b" in self.key:
+                if not self.key in NOTES_FLAT:
                     self.key = self.EQUIVALENT_FLATS[self.key]
                 i = self.find_flat_index(self.key)
             elif self.key[0] == "n" and self.key[1:].isdecimal():
@@ -517,12 +516,12 @@ class KeySignature:
 
         if self.number_of_semitones == 12:
             if isinstance(self.key, int):
-                self.key = self.NOTES_SHARP[self.key]
+                self.key = NOTES_SHARP[self.key]
             self.note_names = self._scale.get_note_names()
             if self._prefer_sharps(self.key, self.mode) or "#" in self.key:
-                scale = self._scale.get_scale(format=self.NOTES_SHARP)
+                scale = self._scale.get_scale(format=NOTES_SHARP)
             else:
-                scale = self._scale.get_scale(format=self.NOTES_FLAT)
+                scale = self._scale.get_scale(format=NOTES_FLAT)
             # In generating the scale, the key may have been
             # switched to an equivalent.
             scale[0] = self.key
@@ -556,12 +555,12 @@ class KeySignature:
         return False
 
     def find_sharp_index(self, pitch_name):
-        if pitch_name in self.NOTES_SHARP:
-            return self.NOTES_SHARP.index(pitch_name)
+        if pitch_name in NOTES_SHARP:
+            return NOTES_SHARP.index(pitch_name)
         if pitch_name in self.CONVERT_UP:
             new_pitch_name = self.CONVERT_UP[pitch_name]
-            if new_pitch_name in self.NOTES_SHARP:
-                return self.NOTES_SHARP.index(new_pitch_name)
+            if new_pitch_name in NOTES_SHARP:
+                return NOTES_SHARP.index(new_pitch_name)
         print("Could not find sharp index for", pitch_name)
         return 0
 
@@ -571,12 +570,12 @@ class KeySignature:
         return False
 
     def find_flat_index(self, pitch_name):
-        if pitch_name in self.NOTES_FLAT:
-            return self.NOTES_FLAT.index(pitch_name)
+        if pitch_name in NOTES_FLAT:
+            return NOTES_FLAT.index(pitch_name)
         if pitch_name in self.CONVERT_DOWN:
             new_pitch_name = self.CONVERT_DOWN[pitch_name]
-            if new_pitch_name in self.NOTES_FLAT:
-                return self.NOTES_FLAT.index(new_pitch_name)
+            if new_pitch_name in NOTES_FLAT:
+                return NOTES_FLAT.index(new_pitch_name)
         print("Could not find flat index for", pitch_name)
         return 0
 
@@ -852,7 +851,7 @@ class KeySignature:
             if pitch_name in self.EQUIVALENT_SHARPS:
                 return (
                     self.note_names[
-                        self.NOTES_SHARP.index(self.EQUIVALENT_SHARPS[pitch_name])
+                        NOTES_SHARP.index(self.EQUIVALENT_SHARPS[pitch_name])
                     ],
                     0,
                 )
@@ -954,8 +953,8 @@ class KeySignature:
 
         if note_name in self.note_names:
             if prefer_sharps:
-                return self.NOTES_SHARP[self.note_names.index(note_name)], 0
-            return self.NOTES_FLAT[self.note_names.index(note_name)], 0
+                return NOTES_SHARP[self.note_names.index(note_name)], 0
+            return NOTES_FLAT[self.note_names.index(note_name)], 0
 
         print("Note name %s not found." % note_name)
         return note_name, -1
@@ -971,7 +970,7 @@ class KeySignature:
 
         if note_name in self.note_names:
             # First find the corresponding letter name
-            letter_name = self.NOTES_SHARP[self.note_names.index(note_name)]
+            letter_name = NOTES_SHARP[self.note_names.index(note_name)]
             # Next, find the closest note in the scale.
             closest, i, distance, e = self.closest_note(letter_name)
             # Use the index to get the corresponding solfege note
@@ -1074,9 +1073,9 @@ class KeySignature:
         Pitches can be specified as a letter name, a solfege name, etc.
         """
         pitch_name = normalize_pitch(pitch_name)
-        if pitch_name in self.NOTES_SHARP:
+        if pitch_name in NOTES_SHARP:
             return self.LETTER_NAME
-        if pitch_name in self.NOTES_FLAT:
+        if pitch_name in NOTES_FLAT:
             return self.LETTER_NAME
         if pitch_name in self.EQUIVALENT_SHARPS:
             return self.LETTER_NAME
@@ -1210,12 +1209,12 @@ class KeySignature:
                     i = self.find_sharp_index(starting_pitch)
                     i += number_of_half_steps
                     i, delta_octave = self._map_to_semitone_range(i, delta_octave)
-                    return self.NOTES_SHARP[i], delta_octave, 0
+                    return NOTES_SHARP[i], delta_octave, 0
                 if self.is_a_flat(starting_pitch):
                     i = self.find_flat_index(starting_pitch)
                     i += number_of_half_steps
                     i, delta_octave = self._map_to_semitone_range(i, delta_octave)
-                    return self.NOTES_FLAT[i], delta_octave, 0
+                    return NOTES_FLAT[i], delta_octave, 0
                 stripped_pitch, delta = strip_accidental(starting_pitch)
                 if stripped_pitch in self.note_names:
                     note_name = stripped_pitch

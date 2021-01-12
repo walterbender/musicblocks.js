@@ -13,7 +13,7 @@
 
 import math
 
-from musicutils import normalize_pitch
+from musicutils import normalize_pitch, NOTES_SHARP, NOTES_FLAT
 
 
 class Temperament:
@@ -24,10 +24,6 @@ class Temperament:
     1/12 root of 2 (12 semitones per octave). Many traditional
     temperaments are based on ratios.
     """
-
-    # Pitch names used for tuning
-    SHARPS = ["c", "c#", "d", "d#", "e", "f", "f#", "g", "g#", "a", "a#", "b"]
-    FLATS = ["c", "db", "d", "eb", "e", "f", "gb", "g", "ab", "a", "bb", "b"]
 
     # The intervals define which ratios are used to define the notes
     # within a given temperament.
@@ -264,10 +260,10 @@ class Temperament:
             New base frequency for C0
         """
         pitch_name = normalize_pitch(pitch_name)
-        if pitch_name in self.SHARPS:
-            i = self.SHARPS.index(pitch_name)
-        elif pitch_name in self.FLATS:
-            i = self.FLATS.index(pitch_name)
+        if pitch_name in NOTES_SHARP:
+            i = NOTES_SHARP.index(pitch_name)
+        elif pitch_name in NOTES_FLAT:
+            i = NOTES_FLAT.index(pitch_name)
         else:
             print("pitch %s not found." % pitch_name)
             return self.C0

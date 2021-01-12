@@ -18,6 +18,8 @@ FLAT = "♭"
 NATURAL = "♮"
 DOUBLESHARP = "𝄪"
 DOUBLEFLAT = "𝄫"
+NOTES_SHARP = ["c", "c#", "d", "d#", "e", "f", "f#", "g", "g#", "a", "a#", "b"]
+NOTES_FLAT = ["c", "db", "d", "eb", "e", "f", "gb", "g", "ab", "a", "bb", "b"]
 
 
 def strip_accidental(pitch):
