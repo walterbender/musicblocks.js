@@ -18,7 +18,7 @@ import unittest
 
 import os
 from temperament import Temperament
-from keysignature import KeySignature
+from keysignature import KeySignature, Scale
 from musicutils import normalize_pitch, display_pitch, strip_accidental
 
 SHARP = "♯"
@@ -47,8 +47,47 @@ def round(f, d):
 
 
 class MusicUtilsTestCase(unittest.TestCase):
+    def scale_test(self):
+        print("SCALE TESTS")
+        print("c major")
+        s = Scale([2, 2, 1, 2, 2, 2, 1], 0)  # C Major
+        self.assertTrue(
+            compare_scales(
+                s.get_scale(), ["n0", "n2", "n4", "n5", "n7", "n9", "n11", "n0"]
+            )
+        )
+        self.assertTrue(
+            compare_scales(
+                s.get_scale(
+                    format=[
+                        "c",
+                        "c#",
+                        "d",
+                        "d#",
+                        "e",
+                        "f",
+                        "f#",
+                        "g",
+                        "g#",
+                        "a",
+                        "a#",
+                        "b",
+                    ]
+                ),
+                ["c", "d", "e", "f", "g", "a", "b", "c"],
+            )
+        )
+        print("g major")
+        s = Scale([2, 2, 1, 2, 2, 2, 1], 7)  # G Major
+        self.assertTrue(
+            compare_scales(
+                s.get_scale(), ["n7", "n9", "n11", "n0", "n2", "n4", "n6", "n7"]
+            )
+        )
+        self.assertEqual(s.get_scale_and_octave_deltas()[1][3], 1)
+
     def normalize_test(self):
-        print("NORMALIZE_TESTS")
+        print("NORMALIZE TESTS")
         self.assertTrue(normalize_pitch("C" + SHARP) == "c#")
         self.assertTrue(display_pitch("c#") == "C" + SHARP)
         self.assertTrue(strip_accidental("c#")[0] == "c")
@@ -158,7 +197,7 @@ class MusicUtilsTestCase(unittest.TestCase):
         t = Temperament(name="third comma meantone")
         ks = KeySignature(
             key="n0",
-            number_of_semitones=t.get_number_of_semitones_in_octave(),
+            # number_of_semitones=t.get_number_of_semitones_in_octave(),
             mode=[2, 2, 1, 2, 2, 2, 7, 1],
         )
         self.assertEqual(len(ks.get_scale()), 8)
@@ -223,7 +262,7 @@ class MusicUtilsTestCase(unittest.TestCase):
         ks = KeySignature(key="c", mode="whole tone")
         self.assertEqual(len(ks.solfege_notes), 7)
         self.assertEqual(ks.solfege_notes[2], "me")
-        self.assertEqual(ks.solfege_notes[3], "sol")
+        self.assertEqual(ks.solfege_notes[4], "sol")
 
         ks = KeySignature(key="c", mode="chromatic")
         self.assertEqual(len(ks.solfege_notes), 13)
@@ -248,9 +287,9 @@ class MusicUtilsTestCase(unittest.TestCase):
 
         self.assertEqual(ks.semitone_transform("g", 3)[0], "a#")
         self.assertEqual(ks.semitone_transform("n7", 3)[0], "n10")
-        self.assertEqual(ks.semitone_transform("sol", 3)[0], "n10")
-        self.assertEqual(ks.semitone_transform("5", 3)[0], "n10")
-        self.assertEqual(ks.semitone_transform("pa", 3)[0], "n10")
+        self.assertEqual(ks.semitone_transform("sol", 3)[0], "tib")
+        self.assertEqual(ks.semitone_transform("5", 3)[0], "7b")
+        self.assertEqual(ks.semitone_transform("pa", 3)[0], "nib")
         self.assertEqual(ks.semitone_transform("golf", 3)[0], "n10")
 
         print("type conversions")
@@ -331,6 +370,246 @@ class MusicUtilsTestCase(unittest.TestCase):
             ),
             392.03,
         )
+
+    def print_scales_test(self):
+        ks = KeySignature(key="c", mode="ionian")
+        print(ks)
+        ks = KeySignature(key="d", mode="dorian")
+        print(ks)
+        ks = KeySignature(key="e", mode="phrygian")
+        print(ks)
+        ks = KeySignature(key="f", mode="lydian")
+        print(ks)
+        ks = KeySignature(key="g", mode="mixolydian")
+        print(ks)
+        ks = KeySignature(key="a", mode="aeolian")
+        print(ks)
+        ks = KeySignature(key="b", mode="locrian")
+        print(ks)
+        print()
+        ks = KeySignature(key="g", mode="ionian")
+        print(ks)
+        ks = KeySignature(key="a", mode="dorian")
+        print(ks)
+        ks = KeySignature(key="b", mode="phrygian")
+        print(ks)
+        ks = KeySignature(key="c", mode="lydian")
+        print(ks)
+        ks = KeySignature(key="d", mode="mixolydian")
+        print(ks)
+        ks = KeySignature(key="e", mode="aeolian")
+        print(ks)
+        ks = KeySignature(key="f#", mode="locrian")
+        print(ks)
+        print()
+        ks = KeySignature(key="d", mode="ionian")
+        print(ks)
+        ks = KeySignature(key="e", mode="dorian")
+        print(ks)
+        ks = KeySignature(key="f#", mode="phrygian")
+        print(ks)
+        ks = KeySignature(key="g", mode="lydian")
+        print(ks)
+        ks = KeySignature(key="a", mode="mixolydian")
+        print(ks)
+        ks = KeySignature(key="b", mode="aeolian")
+        print(ks)
+        ks = KeySignature(key="c#", mode="locrian")
+        print(ks)
+        print()
+        ks = KeySignature(key="a", mode="ionian")
+        print(ks)
+        ks = KeySignature(key="b", mode="dorian")
+        print(ks)
+        ks = KeySignature(key="c#", mode="phrygian")
+        print(ks)
+        ks = KeySignature(key="d", mode="lydian")
+        print(ks)
+        ks = KeySignature(key="e", mode="mixolydian")
+        print(ks)
+        ks = KeySignature(key="f#", mode="aeolian")
+        print(ks)
+        ks = KeySignature(key="g#", mode="locrian")
+        print(ks)
+        print()
+        ks = KeySignature(key="e", mode="ionian")
+        print(ks)
+        ks = KeySignature(key="f#", mode="dorian")
+        print(ks)
+        ks = KeySignature(key="g#", mode="phrygian")
+        print(ks)
+        ks = KeySignature(key="a", mode="lydian")
+        print(ks)
+        ks = KeySignature(key="b", mode="mixolydian")
+        print(ks)
+        ks = KeySignature(key="c#", mode="aeolian")
+        print(ks)
+        ks = KeySignature(key="d#", mode="locrian")
+        print(ks)
+        print()
+        ks = KeySignature(key="b", mode="ionian")
+        print(ks)
+        ks = KeySignature(key="c#", mode="dorian")
+        print(ks)
+        ks = KeySignature(key="d#", mode="phrygian")
+        print(ks)
+        ks = KeySignature(key="e", mode="lydian")
+        print(ks)
+        ks = KeySignature(key="f#", mode="mixolydian")
+        print(ks)
+        ks = KeySignature(key="g#", mode="aeolian")
+        print(ks)
+        ks = KeySignature(key="a#", mode="locrian")
+        print(ks)
+        print()
+        ks = KeySignature(key="f#", mode="ionian")
+        print(ks)
+        ks = KeySignature(key="g#", mode="dorian")
+        print(ks)
+        ks = KeySignature(key="a#", mode="phrygian")
+        print(ks)
+        ks = KeySignature(key="b", mode="lydian")
+        print(ks)
+        ks = KeySignature(key="c#", mode="mixolydian")
+        print(ks)
+        ks = KeySignature(key="d#", mode="aeolian")
+        print(ks)
+        ks = KeySignature(key="e#", mode="locrian")
+        print(ks)
+        print()
+        ks = KeySignature(key="c#", mode="ionian")
+        print(ks)
+        ks = KeySignature(key="d#", mode="dorian")
+        print(ks)
+        ks = KeySignature(key="e#", mode="phrygian")
+        print(ks)
+        ks = KeySignature(key="f#", mode="lydian")
+        print(ks)
+        ks = KeySignature(key="g#", mode="mixolydian")
+        print(ks)
+        ks = KeySignature(key="a#", mode="aeolian")
+        print(ks)
+        ks = KeySignature(key="b#", mode="locrian")
+        print(ks)
+        print()
+        ks = KeySignature(key="f", mode="ionian")
+        print(ks)
+        ks = KeySignature(key="g", mode="dorian")
+        print(ks)
+        ks = KeySignature(key="a", mode="phrygian")
+        print(ks)
+        ks = KeySignature(key="bb", mode="lydian")
+        print(ks)
+        ks = KeySignature(key="c", mode="mixolydian")
+        print(ks)
+        ks = KeySignature(key="d", mode="aeolian")
+        print(ks)
+        ks = KeySignature(key="e", mode="locrian")
+        print(ks)
+        print()
+        ks = KeySignature(key="bb", mode="ionian")
+        print(ks)
+        ks = KeySignature(key="c", mode="dorian")
+        print(ks)
+        ks = KeySignature(key="d", mode="phrygian")
+        print(ks)
+        ks = KeySignature(key="eb", mode="lydian")
+        print(ks)
+        ks = KeySignature(key="f", mode="mixolydian")
+        print(ks)
+        ks = KeySignature(key="g", mode="aeolian")
+        print(ks)
+        ks = KeySignature(key="a", mode="locrian")
+        print(ks)
+        print()
+        ks = KeySignature(key="eb", mode="ionian")
+        print(ks)
+        ks = KeySignature(key="f", mode="dorian")
+        print(ks)
+        ks = KeySignature(key="g", mode="phrygian")
+        print(ks)
+        ks = KeySignature(key="ab", mode="lydian")
+        print(ks)
+        ks = KeySignature(key="bb", mode="mixolydian")
+        print(ks)
+        ks = KeySignature(key="c", mode="aeolian")
+        print(ks)
+        ks = KeySignature(key="d", mode="locrian")
+        print(ks)
+        print()
+        ks = KeySignature(key="ab", mode="ionian")
+        print(ks)
+        ks = KeySignature(key="bb", mode="dorian")
+        print(ks)
+        ks = KeySignature(key="c", mode="phrygian")
+        print(ks)
+        ks = KeySignature(key="db", mode="lydian")
+        print(ks)
+        ks = KeySignature(key="eb", mode="mixolydian")
+        print(ks)
+        ks = KeySignature(key="f", mode="aeolian")
+        print(ks)
+        ks = KeySignature(key="g", mode="locrian")
+        print(ks)
+        print()
+        ks = KeySignature(key="db", mode="ionian")
+        print(ks)
+        ks = KeySignature(key="eb", mode="dorian")
+        print(ks)
+        ks = KeySignature(key="fb", mode="phrygian")
+        print(ks)
+        ks = KeySignature(key="gb", mode="lydian")
+        print(ks)
+        ks = KeySignature(key="ab", mode="mixolydian")
+        print(ks)
+        ks = KeySignature(key="bb", mode="aeolian")
+        print(ks)
+        ks = KeySignature(key="c", mode="locrian")
+        print(ks)
+        print()
+        ks = KeySignature(key="gb", mode="ionian")
+        print(ks)
+        ks = KeySignature(key="ab", mode="dorian")
+        print(ks)
+        ks = KeySignature(key="bb", mode="phrygian")
+        print(ks)
+        ks = KeySignature(key="cb", mode="lydian")
+        print(ks)
+        ks = KeySignature(key="db", mode="mixolydian")
+        print(ks)
+        ks = KeySignature(key="eb", mode="aeolian")
+        print(ks)
+        ks = KeySignature(key="f", mode="locrian")
+        print(ks)
+        print()
+        ks = KeySignature(key="cb", mode="ionian")
+        print(ks)
+        ks = KeySignature(key="db", mode="dorian")
+        print(ks)
+        ks = KeySignature(key="eb", mode="phrygian")
+        print(ks)
+        ks = KeySignature(key="fb", mode="lydian")
+        print(ks)
+        ks = KeySignature(key="gb", mode="mixolydian")
+        print(ks)
+        ks = KeySignature(key="ab", mode="aeolian")
+        print(ks)
+        ks = KeySignature(key="bb", mode="locrian")
+        print(ks)
+        print()
+
+        for m in [
+            "ionian",
+            "dorian",
+            "phrygian",
+            "lydian",
+            "mixolydian",
+            "locrian",
+            "aeolian",
+        ]:
+            for k in ["c", "g", "d", "a", "e", "b", "f#", "db", "ab", "eb", "bb", "f"]:
+                ks = KeySignature(key=k, mode=m)
+                # print(ks)
 
 
 if __name__ == "__main__":

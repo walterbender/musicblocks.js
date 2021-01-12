@@ -264,107 +264,8 @@ class KeySignature:
         "7",
     ]
 
-    # TODO:
-    # We need to think about how to capture the notion that C Major
-    # Pentatonic should feel like G Major (and use G Major in its score.
-    # Are there preferences for chromatic? for octotonic? etc.
     MODE_MAPPER = {
         "ionian": "major",
-        "dorian": {
-            "c": ["major", "bb"],
-            "d": ["major", "c"],
-            "e": ["major", "d"],
-            "f": ["minor", "c"],
-            "g": ["major", "f"],
-            "a": ["major", "g"],
-            "b": ["major", "a"],
-            "c#": ["major", "b"],
-            "d#": ["major", "c#"],
-            "f#": ["major", "e"],
-            "g#": ["major", "f#"],
-            "a#": ["major", "ab"],
-            "db": ["minor", "ab"],
-            "eb": ["minor", "bb"],
-            "gb": ["minor", "c#"],
-            "ab": ["minor", "eb"],
-            "bb": ["minor", "f"],
-        },
-        "phrygian": {
-            "c": ["major", "ab"],
-            "d": ["major", "bb"],
-            "e": ["major", "c"],
-            "f": ["major", "db"],
-            "g": ["minor", "c"],
-            "a": ["major", "f"],
-            "b": ["major", "g"],
-            "c#": ["major", "a"],
-            "d#": ["major", "b"],
-            "f#": ["major", "d"],
-            "g#": ["major", "e"],
-            "a#": ["major", "f#"],
-            "db": ["major", "a"],
-            "eb": ["minor", "ab"],
-            "gb": ["major", "d"],
-            "ab": ["major", "e"],
-            "bb": ["minor", "eb"],
-        },
-        "lydian": {
-            "c": ["major", "g"],
-            "d": ["major", "a"],
-            "e": ["major", "b"],
-            "f": ["major", "c"],
-            "g": ["major", "d"],
-            "a": ["major", "e"],
-            "b": ["major", "f#"],
-            "c#": ["major", "ab"],
-            "d#": ["major", "bb"],
-            "f#": ["major", "c#"],
-            "g#": ["minor", "c"],
-            "a#": ["major", "bb"],
-            "db": ["minor", "c"],
-            "eb": ["minor", "g"],
-            "gb": ["minor", "bb"],
-            "ab": ["minor", "c"],
-            "bb": ["minor", "d"],
-        },
-        "mixolydian": {
-            "c": ["major", "f"],
-            "d": ["major", "g"],
-            "e": ["major", "a"],
-            "f": ["major", "bb"],
-            "g": ["major", "c"],
-            "a": ["major", "d"],
-            "b": ["major", "e"],
-            "c#": ["major", "f#"],
-            "d#": ["major", "ab"],
-            "f#": ["major", "b"],
-            "g#": ["major", "f"],
-            "a#": ["minor", "c"],
-            "db": ["minor", "eb"],
-            "eb": ["minor", "f"],
-            "gb": ["minor", "ab"],
-            "ab": ["minor", "bb"],
-            "bb": ["minor", "c"],
-        },
-        "locrian": {
-            "c": ["major", "db"],
-            "d": ["minor", "c"],
-            "e": ["major", "f"],
-            "f": ["major", "gb"],
-            "g": ["major", "ab"],
-            "a": ["major", "bb"],
-            "b": ["major", "c"],
-            "c#": ["major", "d"],
-            "d#": ["minor", "c#"],
-            "f#": ["major", "g"],
-            "g#": ["major", "a"],
-            "a#": ["major", "b"],
-            "db": ["major", "d"],
-            "eb": ["minor", "db"],
-            "gb": ["major", "f#"],
-            "ab": ["minor", "gb"],
-            "bb": ["minor", "ab"],
-        },
         "aeolian": "minor",
         "natural minor": "minor",
         "harmonic minor": "minor",
@@ -385,7 +286,6 @@ class KeySignature:
         "a minor",
         "a minor pentatonic",
         "b locrian",
-
         "g major",
         "g major pentatonic",
         "g major blues",
@@ -397,7 +297,6 @@ class KeySignature:
         "e minor",
         "e minor pentatonic",
         "f# locrian",
-
         "d major",
         "d major pentatonic",
         "d major blues",
@@ -409,7 +308,6 @@ class KeySignature:
         "b minor",
         "b minor pentatonic",
         "c# locrian",
-
         "a major",
         "a major pentatonic",
         "a major blues",
@@ -420,28 +318,21 @@ class KeySignature:
         "e mixolydian",
         "f# minor",
         "f# minor pentatonic",
-        "ab locrian",
-
         "e major",
         "e major pentatonic",
         "e major blues",
         "e whole tone",
         "f# dorian",
-        "ab dorian",
-        "ab phrygian",
         "a lydian",
         "b mixolydian",
         "c# minor",
         "c# minor pentatonic",
-        "eb locrian",
-
         "b major",
         "b major pentatonic",
         "b major blues",
         "b whole tone",
         "c# dorian",
         "d# phrygian",
-        "eb phrygian",
         "e lydian",
         "f# mixolydian",
         "g# minor",
@@ -458,6 +349,8 @@ class KeySignature:
         "a#": "bb",
         "e#": "f",
         "b#": "c",
+        "cb": "cb",
+        "fb": "fb",
     }
     EQUIVALENT_SHARPS = {
         "db": "c#",
@@ -467,6 +360,8 @@ class KeySignature:
         "bb": "a#",
         "cb": "b",
         "fb": "e",
+        "e#": "e#",
+        "b#": "b#",
     }
     EQUIVALENTS = {
         "ax": ["b", "cb"],
@@ -595,12 +490,12 @@ class KeySignature:
             if self._prefer_sharps(self.key, self.mode) or "#" in self.key:
                 if not self.key in self.NOTES_SHARP:
                     self.key = self.EQUIVALENT_SHARPS[self.key]
-                i = self.NOTES_SHARP.index(self.key)
-            elif self.key in self.NOTES_FLAT:
+                i = self.find_sharp_index(self.key)
+            elif self.key in self.NOTES_FLAT or "b" in self.key:
                 if not self.key in self.NOTES_FLAT:
                     self.key = self.EQUIVALENT_FLATS[self.key]
-                i = self.NOTES_FLAT.index(self.key)
-            elif self.key[0] == "n":
+                i = self.find_flat_index(self.key)
+            elif self.key[0] == "n" and self.key[1:].isdecimal():
                 i = int(self.key[1:])  # This is not very robust.
             else:
                 print("Could not find key index:", self.key)
@@ -623,16 +518,16 @@ class KeySignature:
         if self.number_of_semitones == 12:
             if isinstance(self.key, int):
                 self.key = self.NOTES_SHARP[self.key]
+            self.note_names = self._scale.get_note_names()
             if self._prefer_sharps(self.key, self.mode) or "#" in self.key:
-                self.note_names = self._scale.get_note_names()
-                self.scale = self.normalize_scale(
-                    self._scale.get_scale(format=self.NOTES_SHARP)
-                )
+                scale = self._scale.get_scale(format=self.NOTES_SHARP)
             else:
-                self.note_names = self._scale.get_note_names()
-                self.scale = self.normalize_scale(
-                    self._scale.get_scale(format=self.NOTES_FLAT)
-                )
+                scale = self._scale.get_scale(format=self.NOTES_FLAT)
+            # In generating the scale, the key may have been
+            # switched to an equivalent.
+            scale[0] = self.key
+            scale[-1] = self.key
+            self.scale = self.normalize_scale(scale)
             self._assign_solfege_note_names()
             self._assign_east_indian_solfege_note_names()
             self._assign_scalar_mode_numbers()
@@ -655,6 +550,36 @@ class KeySignature:
     def get_fixed_solfege(self):
         return self.fixed_solfege
 
+    def is_a_sharp(self, pitch_name):
+        if pitch_name.endswith("#") or pitch_name in self.PITCH_LETTERS:
+            return True
+        return False
+
+    def find_sharp_index(self, pitch_name):
+        if pitch_name in self.NOTES_SHARP:
+            return self.NOTES_SHARP.index(pitch_name)
+        if pitch_name in self.CONVERT_UP:
+            new_pitch_name = self.CONVERT_UP[pitch_name]
+            if new_pitch_name in self.NOTES_SHARP:
+                return self.NOTES_SHARP.index(new_pitch_name)
+        print("Could not find sharp index for", pitch_name)
+        return 0
+
+    def is_a_flat(self, pitch_name):
+        if pitch_name.endswith("b") or pitch_name in self.PITCH_LETTERS:
+            return True
+        return False
+
+    def find_flat_index(self, pitch_name):
+        if pitch_name in self.NOTES_FLAT:
+            return self.NOTES_FLAT.index(pitch_name)
+        if pitch_name in self.CONVERT_DOWN:
+            new_pitch_name = self.CONVERT_DOWN[pitch_name]
+            if new_pitch_name in self.NOTES_FLAT:
+                return self.NOTES_FLAT.index(new_pitch_name)
+        print("Could not find flat index for", pitch_name)
+        return 0
+
     def normalize_scale(self, scale):
         # At this point, the scale includes the first note of the next
         # octave. Hence, for example, the Latin modes hve 8 notes.
@@ -676,7 +601,6 @@ class KeySignature:
                     if i2 - i1 > 1:
                         if scale[i + 1] in self.CONVERT_DOWN:
                             scale[i + 1] = self.CONVERT_DOWN[scale[i + 1]]
-
             # And ensure there are no repeated letter names.
             for i in range(len(scale) - 1):
                 if i == 0 and scale[i][0] == scale[i + 1][0]:
@@ -686,6 +610,8 @@ class KeySignature:
                 elif scale[i][0] == scale[i + 1][0]:
                     if scale[i] in self.CONVERT_DOWN:
                         new_current_note = self.CONVERT_DOWN[scale[i]]
+                    else:
+                        print(scale[i])
                     # If changing the current note makes it the same
                     # as the previous note, then we need to change the
                     # next note instead.
@@ -715,7 +641,7 @@ class KeySignature:
             for i in range(len(scale)):
                 if "x" in scale[i]:
                     scale[i] = self.CONVERT_UP[scale[i]]
-                if scale[i] in self.EQUIVANENT_FLATS:
+                if scale[i] in self.EQUIVALENT_FLATS:
                     scale[i] = self.EQUIVALENT_FLATS[scale[i]]
         elif convert_down:
             for i in range(len(scale)):
@@ -910,87 +836,102 @@ class KeySignature:
         NOTE: Only for temperaments with 12 semitones.
         """
         pitch_name = normalize_pitch(pitch_name)
-        # Maybe it is already a generic name.
-        if pitch_name in self.note_names:
-            return pitch_name, 0
-        stripped_pitch, delta = strip_accidental(pitch_name)
-        if stripped_pitch in self.note_names:
-            i = self.note_names.index(stripped_pitch)
-            i, delta_octave = self._map_to_semitone_range(i + delta, 0)
-            return self.note_names[i], 0
-        if self.number_of_semitones != 12:
-            print("Cannot convert %s to a generic note name." % pitch_name)
-            return pitch_name, -1
+        original_notation = self.get_pitch_type(pitch_name)
 
-        # Look for a letter name, e.g., g# or ab
-        if "#" in pitch_name and pitch_name in self.NOTES_SHARP:
-            return self.note_names[self.NOTES_SHARP.index(pitch_name)], 0
-        if pitch_name in self.NOTES_FLAT:
-            return self.note_names[self.NOTES_FLAT.index(pitch_name)], 0
-        # Catch cb, bx, etc.
-        if pitch_name in self.EQUIVALENT_SHARPS:
-            return (
-                self.note_names[
-                    self.NOTES_SHARP.index(self.EQUIVALENT_SHARPS[pitch_name])
-                ],
-                0,
-            )
-        if pitch_name in self.EQUIVALENT_FLATS:
-            return (
-                self.note_names[
-                    self.NOTES_FLAT.index(self.EQUIVALENT_FLATS[pitch_name])
-                ],
-                0,
-            )
-        if pitch_name in self.EQUIVALENTS:
-            if "#" in self.EQUIVALENTS[pitch_name][0]:
+        # Maybe it is already a generic name.
+        if original_notation == self.GENERIC_NOTE_NAME:
+            return pitch_name, 0
+
+        if original_notation == self.LETTER_NAME:
+            # Look for a letter name, e.g., g# or ab
+            if "#" in pitch_name and self.is_a_sharp(pitch_name):
+                return self.note_names[self.find_sharp_index(pitch_name)], 0
+            if self.is_a_flat(pitch_name):
+                return self.note_names[self.find_flat_index(pitch_name)], 0
+            # Catch cb, bx, etc.
+            if pitch_name in self.EQUIVALENT_SHARPS:
                 return (
                     self.note_names[
-                        self.NOTES_SHARP.index(self.EQUIVALENTS[pitch_name][0])
+                        self.NOTES_SHARP.index(self.EQUIVALENT_SHARPS[pitch_name])
                     ],
                     0,
                 )
-            return (
-                self.note_names[self.NOTES_FLAT.index(self.EQUIVALENTS[pitch_name][0])],
-                0,
-            )
+            if pitch_name in self.EQUIVALENT_FLATS:
+                return (
+                    self.note_names[
+                        self.find_flat_index(self.EQUIVALENT_FLATS[pitch_name])
+                    ],
+                    0,
+                )
+            if pitch_name in self.EQUIVALENTS:
+                if "#" in self.EQUIVALENTS[pitch_name][0]:
+                    return (
+                        self.note_names[
+                            self.find_sharp_index(self.EQUIVALENTS[pitch_name][0])
+                        ],
+                        0,
+                    )
+                return (
+                    self.note_names[
+                        self.find_flat_index(self.EQUIVALENTS[pitch_name][0])
+                    ],
+                    0,
+                )
 
-        # Look for a Solfege name
-        if self.fixed_solfege:
-            note_name = self._name_converter(pitch_name, self.solfege_notes)
-            if note_name is not None:
-                return note_name, 0
-        else:
-            if "#" in pitch_name and pitch_name in self.SOLFEGE_SHARP:
-                return self.note_names[self.SOLFEGE_SHARP.index(pitch_name)], 0
-            if pitch_name in self.SOLFEGE_FLAT:
-                return self.note_names[self.SOLFEGE_FLAT.index(pitch_name)], 0
+        if original_notation == self.SOLFEGE_NAME:
+            # Look for a Solfege name
+            if self.fixed_solfege:
+                note_name = self._name_converter(pitch_name, self.solfege_notes)
+                if note_name is not None:
+                    return note_name, 0
+            else:
+                if "#" in pitch_name and pitch_name in self.SOLFEGE_SHARP:
+                    return self.note_names[self.SOLFEGE_SHARP.index(pitch_name)], 0
+                if pitch_name in self.SOLFEGE_FLAT:
+                    return self.note_names[self.SOLFEGE_FLAT.index(pitch_name)], 0
 
-        # Look for a Custom name
-        if len(self.custom_note_names) > 0:
-            note_name = self._name_converter(pitch_name, self.custom_note_names)
-            if note_name is not None:
-                return note_name, 0
-        # Look for a Scalar mode number
-        if self.fixed_solfege:
-            note_name = self._name_converter(pitch_name, self.scalar_mode_numbers)
-            if note_name is not None:
-                return note_name, 0
-        else:
-            if "#" in pitch_name and pitch_name in self.SCALAR_NAMES_SHARP:
-                return self.note_names[self.SCALAR_NAMES_SHARP.index(pitch_name)], 0
-            if pitch_name in self.SCALAR_NAMES_FLAT:
-                return self.note_names[self.SCALAR_NAMES_FLAT.index(pitch_name)], 0
-        # Look for a East Indian Solfege name
-        if self.fixed_solfege:
-            note_name = self._name_converter(pitch_name, self.east_indian_solfege_notes)
-            if note_name is not None:
-                return note_name, 0
-        else:
-            if "#" in pitch_name and pitch_name in self.EAST_INDIAN_SHARP:
-                return self.note_names[self.EAST_INDIAN_SHARP.index(pitch_name)], 0
-            if pitch_name in self.EAST_INDIAN_FLAT:
-                return self.note_names[self.EAST_INDIAN_FLAT.index(pitch_name)], 0
+        if original_notation == self.CUSTOM_NAME:
+            # Look for a Custom name
+            if len(self.custom_note_names) > 0:
+                note_name = self._name_converter(pitch_name, self.custom_note_names)
+                if note_name is not None:
+                    return note_name, 0
+            # Look for a Scalar mode number
+            if self.fixed_solfege:
+                note_name = self._name_converter(pitch_name, self.scalar_mode_numbers)
+                if note_name is not None:
+                    return note_name, 0
+            else:
+                if "#" in pitch_name and pitch_name in self.SCALAR_NAMES_SHARP:
+                    return self.note_names[self.SCALAR_NAMES_SHARP.index(pitch_name)], 0
+                if pitch_name in self.SCALAR_NAMES_FLAT:
+                    return self.note_names[self.SCALAR_NAMES_FLAT.index(pitch_name)], 0
+
+        if original_notation == self.EAST_INDIAN_SOLFEGE_NAME:
+            # Look for a East Indian Solfege name
+            if self.fixed_solfege:
+                note_name = self._name_converter(
+                    pitch_name, self.east_indian_solfege_notes
+                )
+                if note_name is not None:
+                    return note_name, 0
+            else:
+                if "#" in pitch_name and pitch_name in self.EAST_INDIAN_SHARP:
+                    return self.note_names[self.EAST_INDIAN_SHARP.index(pitch_name)], 0
+                if pitch_name in self.EAST_INDIAN_FLAT:
+                    return self.note_names[self.EAST_INDIAN_FLAT.index(pitch_name)], 0
+
+        if original_notation == self.SCALAR_MODE_NUMBER:
+            # Look for a scalar mode number
+            if self.fixed_solfege:
+                note_name = self._name_converter(pitch_name, self.scalar_mode_numbers)
+                if note_name is not None:
+                    return note_name, 0
+            else:
+                if "#" in pitch_name and pitch_name in self.SCALAR_NAMES_SHARP:
+                    return self.note_names[self.SCALAR_NAMES_SHARP.index(pitch_name)], 0
+                if pitch_name in self.SCALAR_NAMES_FLAT:
+                    return self.note_names[self.SCALAR_NAMES_FLAT.index(pitch_name)], 0
 
         print("Pitch name %s not found." % pitch_name)
         return pitch_name, -1
@@ -1003,9 +944,9 @@ class KeySignature:
         """
         note_name = normalize_pitch(note_name)
         # Maybe it is already a letter name?
-        if note_name in self.NOTES_SHARP:
+        if self.is_a_sharp(note_name):
             return note_name, 0
-        if note_name in self.NOTES_FLAT:
+        if self.is_a_flat(note_name):
             return note_name, 0
         if self.number_of_semitones != 12:
             print("Cannot convert %s to a letter name." % note_name)
@@ -1260,20 +1201,21 @@ class KeySignature:
             error code
         """
         starting_pitch = normalize_pitch(starting_pitch)
+        original_notation = self.get_pitch_type(starting_pitch)
         mode_length = self.get_mode_length()
         delta_octave = 0
         if self.number_of_semitones == 12:
-            if starting_pitch in self.NOTES_SHARP:
-                i = self.NOTES_SHARP.index(starting_pitch)
-                i += number_of_half_steps
-                i, delta_octave = self._map_to_semitone_range(i, delta_octave)
-                return self.NOTES_SHARP[i], delta_octave, 0
-            elif starting_pitch in self.NOTES_FLAT:
-                i = self.NOTES_FLAT.index(starting_pitch)
-                i += number_of_half_steps
-                i, delta_octave = self._map_to_semitone_range(i, delta_octave)
-                return self.NOTES_FLAT[i], delta_octave, 0
-            else:
+            if original_notation == self.LETTER_NAME:
+                if self.is_a_sharp(starting_pitch):
+                    i = self.find_sharp_index(starting_pitch)
+                    i += number_of_half_steps
+                    i, delta_octave = self._map_to_semitone_range(i, delta_octave)
+                    return self.NOTES_SHARP[i], delta_octave, 0
+                if self.is_a_flat(starting_pitch):
+                    i = self.find_flat_index(starting_pitch)
+                    i += number_of_half_steps
+                    i, delta_octave = self._map_to_semitone_range(i, delta_octave)
+                    return self.NOTES_FLAT[i], delta_octave, 0
                 stripped_pitch, delta = strip_accidental(starting_pitch)
                 if stripped_pitch in self.note_names:
                     note_name = stripped_pitch
@@ -1290,6 +1232,40 @@ class KeySignature:
                         return self.note_names[i], delta_octave, 0
                 print("Cannot find %s in note names." % starting_pitch)
                 return starting_pitch, 0, -1
+
+            note_name, e = self.convert_to_generic_note_name(starting_pitch)
+            stripped_pitch, delta = strip_accidental(note_name)  # starting_pitch)
+            if stripped_pitch in self.note_names:
+                i = self.note_names.index(stripped_pitch)
+                i += number_of_half_steps
+                i, delta_octave = self._map_to_semitone_range(i + delta, delta_octave)
+                if original_notation == self.SOLFEGE_NAME:
+                    return (
+                        self.generic_note_name_to_solfege(
+                            self.note_names[i], "#" in starting_pitch
+                        )[0],
+                        delta_octave,
+                        0,
+                    )
+                if original_notation == self.EAST_INDIAN_SOLFEGE_NAME:
+                    return (
+                        self.generic_note_name_to_east_indian_solfege(
+                            self.note_names[i], "#" in starting_pitch
+                        )[0],
+                        delta_octave,
+                        0,
+                    )
+                if original_notation == self.SCALAR_MODE_NUMBER:
+                    return (
+                        self.generic_note_name_to_scalar_mode_number(
+                            self.note_names[i], "#" in starting_pitch
+                        )[0],
+                        delta_octave,
+                        0,
+                    )
+                return self.note_names[i], delta_octave, 0
+            print("Cannot find %s in note names." % starting_pitch)
+            return starting_pitch, 0, -1
         else:
             stripped_pitch, delta = strip_accidental(starting_pitch)
             if stripped_pitch in self.note_names:
@@ -1406,21 +1382,21 @@ class KeySignature:
             delta_octave,
         )
 
-    def _restore_format(self, pitch_name, original_format, prefer_sharps):
+    def _restore_format(self, pitch_name, original_notation, prefer_sharps):
         """
         Format convertor (could be done with a dictionary?)
         """
-        if original_format == self.GENERIC_NOTE_NAME:
+        if original_notation == self.GENERIC_NOTE_NAME:
             return pitch_name
-        if original_format == self.LETTER_NAME:
+        if original_notation == self.LETTER_NAME:
             return self.generic_note_name_to_letter_name(pitch_name, prefer_sharps)[0]
-        if original_format == self.SOLFEGE_NAME:
+        if original_notation == self.SOLFEGE_NAME:
             return self.generic_note_name_to_solfege(pitch_name, prefer_sharps)[0]
-        if original_format == self.CUSTOM_NAME:
+        if original_notation == self.CUSTOM_NAME:
             return self.generic_note_name_to_custom_note(pitch_name)[0]
-        if original_format == self.SCALAR_MODE_NUMBER:
+        if original_notation == self.SCALAR_MODE_NUMBER:
             return self.generic_note_name_to_scalar_mode_number(pitch_name)[0]
-        if original_format == self.EAST_INDIAN_SOLFEGE_NAME:
+        if original_notation == self.EAST_INDIAN_SOLFEGE_NAME:
             return self.generic_note_name_to_east_indian_solfege(pitch_name)[0]
         return pitch_name
 
@@ -1530,6 +1506,7 @@ class KeySignature:
         ks = "%s %s" % (key, mode)
         if ks in self.PREFER_SHARPS:
             return True
+        """
         if mode in self.MODE_MAPPER:
             if isinstance(self.MODE_MAPPER[mode], str):
                 ks = "%s %s" % (key, self.MODE_MAPPER[mode])
@@ -1548,6 +1525,7 @@ class KeySignature:
                     self.MODE_MAPPER[mode][key][0],
                 )
             return ks in self.PREFER_SHARPS
+        """
         return False
 
     def __str__(self):
@@ -1563,4 +1541,5 @@ class KeySignature:
             key = "%s%s" % (self.key[0].upper(), self.key[1:])
         else:
             key = self.key.upper()
-        return "%s %s [%s] [%s]" % (key, self.mode.upper(), hs, scale)
+        # return "%s %s [%s] [%s]" % (key, self.mode.upper(), hs, scale)
+        return "%s %s [%s]" % (key, self.mode.upper(), scale)
