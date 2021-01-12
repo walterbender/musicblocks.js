@@ -137,10 +137,10 @@ class MusicUtilsTestCase(unittest.TestCase):
 
         print("test tuning")
         t = Temperament()
-        self.assertEqual(round(t.tune("a", 4, 440), 100), 16.35)
-        self.assertEqual(round(t.tune("a", 4, 441), 100), 16.39)
-        t.set_base_frequency(t.tune("a", 4, 441))
-        t.generate(name="equal")
+        t.tune("a", 4, 440.0)
+        self.assertEqual(round(t.get_base_frequency(), 100), 16.35)
+        t.tune("a", 4, 441.0)
+        self.assertEqual(round(t.get_base_frequency(), 100), 16.39)
         self.assertEqual(round(t.get_freqs()[57], 100), 441.0)
 
     def key_signature_test(self):

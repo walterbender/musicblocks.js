@@ -266,12 +266,12 @@ class Temperament:
             i = NOTES_FLAT.index(pitch_name)
         else:
             print("pitch %s not found." % pitch_name)
-            return self.C0
+            return
 
         if self.ratios is not None and self.intervals is not None:
-            return (frequency / (2 ** octave)) / self.ratios[self.intervals[i]]
-
-        return self.C0
+            self.base_frequency = (frequency / 2 ** octave) / self.ratios[self.intervals[i]]
+            self.generate(self.name)
+        return
 
     def set_base_frequency(self, base_frequency):
         """
