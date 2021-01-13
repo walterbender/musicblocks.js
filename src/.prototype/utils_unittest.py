@@ -19,13 +19,17 @@ import unittest
 import os
 from temperament import Temperament
 from keysignature import KeySignature, Scale
-from musicutils import normalize_pitch, display_pitch, strip_accidental
-
-SHARP = "♯"
-FLAT = "♭"
-NATURAL = "♮"
-DOUBLESHARP = "𝄪"
-DOUBLEFLAT = "𝄫"
+from musicutils import normalize_pitch, display_pitch, strip_accidental, get_pitch_type
+from musicutils import SHARP, FLAT
+from musicutils import (
+    GENERIC_NOTE_NAME,
+    LETTER_NAME,
+    SOLFEGE_NAME,
+    EAST_INDIAN_SOLFEGE_NAME,
+    SCALAR_MODE_NUMBER,
+    CUSTOM_NAME,
+    UNKNOWN_PITCH_NAME,
+)
 
 
 def compare_scales(scale1, scale2):
@@ -308,16 +312,26 @@ class MusicUtilsTestCase(unittest.TestCase):
         self.assertEqual(ks.generic_note_name_to_scalar_mode_number("n7")[0], "5")
         self.assertEqual(ks.generic_note_name_to_custom_note_name("n7")[0], "golf")
 
-        self.assertEqual(ks.get_pitch_type("g"), ks.LETTER_NAME)
-        self.assertEqual(ks.get_pitch_type("c#"), ks.LETTER_NAME)
-        self.assertEqual(ks.get_pitch_type("n7"), ks.GENERIC_NOTE_NAME)
-        self.assertEqual(ks.get_pitch_type("n7b"), ks.GENERIC_NOTE_NAME)
-        self.assertEqual(ks.get_pitch_type("sol"), ks.SOLFEGE_NAME)
-        self.assertEqual(ks.get_pitch_type("sol#"), ks.SOLFEGE_NAME)
-        self.assertEqual(ks.get_pitch_type("pa"), ks.EAST_INDIAN_SOLFEGE_NAME)
-        self.assertEqual(ks.get_pitch_type("5"), ks.SCALAR_MODE_NUMBER)
-        self.assertEqual(ks.get_pitch_type("golf"), ks.CUSTOM_NAME)
-        self.assertEqual(ks.get_pitch_type("foobar"), ks.UNKNOWN)
+        print("pitch type check")
+        self.assertEqual(ks.pitch_name_type("g"), LETTER_NAME)
+        self.assertEqual(ks.pitch_name_type("c#"), LETTER_NAME)
+        self.assertEqual(ks.pitch_name_type("n7"), GENERIC_NOTE_NAME)
+        self.assertEqual(ks.pitch_name_type("n7b"), GENERIC_NOTE_NAME)
+        self.assertEqual(ks.pitch_name_type("sol"), SOLFEGE_NAME)
+        self.assertEqual(ks.pitch_name_type("sol#"), SOLFEGE_NAME)
+        self.assertEqual(ks.pitch_name_type("pa"), EAST_INDIAN_SOLFEGE_NAME)
+        self.assertEqual(ks.pitch_name_type("5"), SCALAR_MODE_NUMBER)
+        self.assertEqual(ks.pitch_name_type("golf"), CUSTOM_NAME)
+        self.assertEqual(ks.pitch_name_type("foobar"), UNKNOWN_PITCH_NAME)
+        self.assertEqual(get_pitch_type("g"), LETTER_NAME)
+        self.assertEqual(get_pitch_type("c#"), LETTER_NAME)
+        self.assertEqual(get_pitch_type("n7"), GENERIC_NOTE_NAME)
+        self.assertEqual(get_pitch_type("n7b"), GENERIC_NOTE_NAME)
+        self.assertEqual(get_pitch_type("sol"), SOLFEGE_NAME)
+        self.assertEqual(get_pitch_type("sol#"), SOLFEGE_NAME)
+        self.assertEqual(get_pitch_type("pa"), EAST_INDIAN_SOLFEGE_NAME)
+        self.assertEqual(get_pitch_type("5"), SCALAR_MODE_NUMBER)
+        self.assertEqual(get_pitch_type("foobar"), UNKNOWN_PITCH_NAME)
 
         # Test fixed Solfege
         print("fixed solfege")

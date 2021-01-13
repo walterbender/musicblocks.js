@@ -20,6 +20,40 @@ DOUBLESHARP = "𝄪"
 DOUBLEFLAT = "𝄫"
 NOTES_SHARP = ["c", "c#", "d", "d#", "e", "f", "f#", "g", "g#", "a", "a#", "b"]
 NOTES_FLAT = ["c", "db", "d", "eb", "e", "f", "gb", "g", "ab", "a", "bb", "b"]
+SCALAR_MODE_NUMBERS = ["1", "2", "3", "4", "5", "6", "7"]
+SOLFEGE_NAMES = ["do", "re", "me", "fa", "sol", "la", "ti"]
+EAST_INDIAN_NAMES = ["sa", "re", "ga", "ma", "pa", "dha", "ni"]
+EQUIVALENT_FLATS = {
+    "c#": "db",
+    "d#": "eb",
+    "f#": "gb",
+    "g#": "ab",
+    "a#": "bb",
+    "e#": "f",
+    "b#": "c",
+    "cb": "cb",
+    "fb": "fb",
+}
+EQUIVALENT_SHARPS = {
+    "db": "c#",
+    "eb": "d#",
+    "gb": "f#",
+    "ab": "g#",
+    "bb": "a#",
+    "cb": "b",
+    "fb": "e",
+    "e#": "e#",
+    "b#": "b#",
+}
+
+# Pitch name types
+GENERIC_NOTE_NAME = "generic note name"
+LETTER_NAME = "letter name"
+SOLFEGE_NAME = "solfege name"
+EAST_INDIAN_SOLFEGE_NAME = "east indian solfege name"
+SCALAR_MODE_NUMBER = "scalar mode number"
+CUSTOM_NAME = "custom name"
+UNKNOWN_PITCH_NAME = "unknown"
 
 
 def strip_accidental(pitch):
@@ -128,3 +162,28 @@ def display_pitch(pitch):
         elif "b" == pitch[1].lower():
             display_pitch += FLAT
     return display_pitch
+
+
+def get_pitch_type(pitch_name):
+    """
+    Pitches can be specified as a letter name, a solfege name, etc.
+    """
+    pitch_name = normalize_pitch(pitch_name)
+    if pitch_name in NOTES_SHARP:
+        return LETTER_NAME
+    if pitch_name in NOTES_FLAT:
+        return LETTER_NAME
+    if pitch_name in EQUIVALENT_SHARPS:
+        return LETTER_NAME
+    if pitch_name in EQUIVALENT_FLATS:
+        return LETTER_NAME
+    pitch_name = strip_accidental(pitch_name)[0]
+    if pitch_name[0] == "n" and pitch_name[1:].isdecimal():
+        return GENERIC_NOTE_NAME
+    if pitch_name in SOLFEGE_NAMES:
+        return SOLFEGE_NAME
+    if pitch_name in EAST_INDIAN_NAMES:
+        return EAST_INDIAN_SOLFEGE_NAME
+    if pitch_name in SCALAR_MODE_NUMBERS:
+        return SCALAR_MODE_NUMBER
+    return UNKNOWN_PITCH_NAME
