@@ -607,17 +607,13 @@ class MusicUtilsTestCase(unittest.TestCase):
         print()
 
         for m in [
-            "ionian",
-            "dorian",
-            "phrygian",
-            "lydian",
-            "mixolydian",
-            "locrian",
-            "aeolian",
+            "major pentatonic",
+            "minor pentatonic",
+            "whole tone",
         ]:
             for k in ["c", "g", "d", "a", "e", "b", "f#", "db", "ab", "eb", "bb", "f"]:
                 ks = KeySignature(key=k, mode=m)
-                # print(ks)
+                print(ks)
 
 
 if __name__ == "__main__":
