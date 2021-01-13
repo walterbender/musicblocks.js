@@ -15,8 +15,15 @@ import re
 
 from musicutils import strip_accidental, normalize_pitch, get_pitch_type
 from musicutils import (
+    PITCH_LETTERS,
     NOTES_SHARP,
     NOTES_FLAT,
+    SOLFEGE_SHARP,
+    SOLFEGE_FLAT,
+    EAST_INDIAN_SHARP,
+    EAST_INDIAN_FLAT,
+    SCALAR_NAMES_SHARP,
+    SCALAR_NAMES_FLAT,
     GENERIC_NOTE_NAME,
     LETTER_NAME,
     SOLFEGE_NAME,
@@ -27,8 +34,11 @@ from musicutils import (
     SCALAR_MODE_NUMBERS,
     SOLFEGE_NAMES,
     EAST_INDIAN_NAMES,
+    EQUIVALENTS,
     EQUIVALENT_FLATS,
     EQUIVALENT_SHARPS,
+    CONVERT_DOWN,
+    CONVERT_UP
 )
 
 
@@ -177,95 +187,6 @@ class KeySignature:
         "ajam maqam": "bb",
     }
 
-    # This notation only applies to temperaments with 12 semitones.
-    PITCH_LETTERS = ["c", "d", "e", "f", "g", "a", "b"]
-
-    # These defintions are only relevant to equal temperament.
-    SOLFEGE_SHARP = [
-        "do",
-        "do#",
-        "re",
-        "re#",
-        "me",
-        "fa",
-        "fa#",
-        "sol",
-        "sol#",
-        "la",
-        "la#",
-        "ti",
-    ]
-    SOLFEGE_FLAT = [
-        "do",
-        "reb",
-        "re",
-        "meb",
-        "me",
-        "fa",
-        "solb",
-        "sol",
-        "lab",
-        "la",
-        "tib",
-        "ti",
-    ]
-    EAST_INDIAN_SHARP = [
-        "sa",
-        "sa#",
-        "re",
-        "re#",
-        "ga",
-        "ma",
-        "ma#",
-        "pa",
-        "pa#",
-        "dha",
-        "dha#",
-        "ni",
-    ]
-    EAST_INDIAN_FLAT = [
-        "sa",
-        "reb",
-        "re",
-        "gab",
-        "ga",
-        "ma",
-        "pab",
-        "pa",
-        "dhab",
-        "dha",
-        "nib",
-        "ni",
-    ]
-    SCALAR_NAMES_SHARP = [
-        "1",
-        "1#",
-        "2",
-        "2#",
-        "3",
-        "4",
-        "4#",
-        "5",
-        "5#",
-        "6",
-        "6#",
-        "7",
-    ]
-    SCALAR_NAMES_FLAT = [
-        "1",
-        "2b",
-        "2",
-        "3b",
-        "3",
-        "4",
-        "4b",
-        "5",
-        "6b",
-        "6",
-        "7b",
-        "7",
-    ]
-
     MODE_MAPPER = {
         "ionian": "major",
         "aeolian": "minor",
@@ -341,90 +262,6 @@ class KeySignature:
         "g# minor pentatonic",
         "a# locrian",
     ]
-
-    EQUIVALENTS = {
-        "ax": ["b", "cb"],
-        "a#": ["bb"],
-        "a": ["a", "bbb", "gx"],
-        "ab": ["g#"],
-        "abb": ["g", "fx"],
-        "bx": ["c#"],
-        "b#": ["c", "dbb"],
-        "b": ["b", "cb", "ax"],
-        "bb": ["a#"],
-        "bbb": ["a", "gx"],
-        "cx": ["d"],
-        "c#": ["db"],
-        "c": ["c", "dbb", "b#"],
-        "cb": ["b"],
-        "cbb": ["bb", "a#"],
-        "dx": ["e", "fb"],
-        "d#": ["eb", "fbb"],
-        "d": ["d", "ebb", "cx"],
-        "db": ["c#", "bx"],
-        "dbb": ["c", "b#"],
-        "ex": ["f#", "gb"],
-        "e#": ["f", "gbb"],
-        "e": ["e", "fb", "dx"],
-        "eb": ["d#", "fbb"],
-        "ebb": ["d", "cx"],
-        "fx": ["g", "abb"],
-        "f#": ["gb", "ex"],
-        "f": ["f", "e#", "gbb"],
-        "fb": ["e", "dx"],
-        "fbb": ["eb", "d#"],
-        "gx": ["a", "bbb"],
-        "g#": ["ab"],
-        "g": ["g", "abb", "fx"],
-        "gb": ["f#", "ex"],
-        "gbb": ["f", "e#"],
-    }
-    CONVERT_DOWN = {
-        "c": "b#",
-        "cb": "b",
-        "cbb": "a#",
-        "d": "cx",
-        "db": "c#",
-        "dbb": "c",
-        "e": "dx",
-        "eb": "d#",
-        "ebb": "d",
-        "f": "e#",
-        "fb": "e",
-        "fbb": "d#",
-        "g": "fx",
-        "gb": "f#",
-        "gbb": "f",
-        "a": "gx",
-        "ab": "g#",
-        "abb": "g",
-        "b": "ax",
-        "bb": "a#",
-        "bbb": "a",
-    }
-    CONVERT_UP = {
-        "cx": "d",
-        "c#": "db",
-        "c": "dbb",
-        "dx": "e",
-        "d#": "eb",
-        "d": "ebb",
-        "ex": "f#",
-        "e#": "f",
-        "e": "fb",
-        "fx": "g",
-        "f#": "gb",
-        "f": "gbb",
-        "gx": "a",
-        "g#": "ab",
-        "g": "abb",
-        "ax": "b",
-        "a#": "bb",
-        "a": "bbb",
-        "bx": "c#",
-        "b#": "c",
-        "b": "cb",
-    }
 
     def __init__(self, mode="major", key="c", number_of_semitones=12):
         """
@@ -530,30 +367,30 @@ class KeySignature:
         return self.fixed_solfege
 
     def is_a_sharp(self, pitch_name):
-        if pitch_name.endswith("#") or pitch_name in self.PITCH_LETTERS:
+        if pitch_name.endswith("#") or pitch_name in PITCH_LETTERS:
             return True
         return False
 
     def find_sharp_index(self, pitch_name):
         if pitch_name in NOTES_SHARP:
             return NOTES_SHARP.index(pitch_name)
-        if pitch_name in self.CONVERT_UP:
-            new_pitch_name = self.CONVERT_UP[pitch_name]
+        if pitch_name in CONVERT_UP:
+            new_pitch_name = CONVERT_UP[pitch_name]
             if new_pitch_name in NOTES_SHARP:
                 return NOTES_SHARP.index(new_pitch_name)
         print("Could not find sharp index for", pitch_name)
         return 0
 
     def is_a_flat(self, pitch_name):
-        if pitch_name.endswith("b") or pitch_name in self.PITCH_LETTERS:
+        if pitch_name.endswith("b") or pitch_name in PITCH_LETTERS:
             return True
         return False
 
     def find_flat_index(self, pitch_name):
         if pitch_name in NOTES_FLAT:
             return NOTES_FLAT.index(pitch_name)
-        if pitch_name in self.CONVERT_DOWN:
-            new_pitch_name = self.CONVERT_DOWN[pitch_name]
+        if pitch_name in CONVERT_DOWN:
+            new_pitch_name = CONVERT_DOWN[pitch_name]
             if new_pitch_name in NOTES_FLAT:
                 return NOTES_FLAT.index(new_pitch_name)
         print("Could not find flat index for", pitch_name)
@@ -573,22 +410,22 @@ class KeySignature:
             # For Latin scales, we cannot skip notes.
             if len(scale) == 8:
                 for i in range(len(scale) - 1):
-                    i1 = self.PITCH_LETTERS.index(scale[i][0])
-                    i2 = self.PITCH_LETTERS.index(scale[i + 1][0])
+                    i1 = PITCH_LETTERS.index(scale[i][0])
+                    i2 = PITCH_LETTERS.index(scale[i + 1][0])
                     if i2 < i1:
                         i2 += 7
                     if i2 - i1 > 1:
-                        if scale[i + 1] in self.CONVERT_DOWN:
-                            scale[i + 1] = self.CONVERT_DOWN[scale[i + 1]]
+                        if scale[i + 1] in CONVERT_DOWN:
+                            scale[i + 1] = CONVERT_DOWN[scale[i + 1]]
             # And ensure there are no repeated letter names.
             for i in range(len(scale) - 1):
                 if i == 0 and scale[i][0] == scale[i + 1][0]:
-                    if scale[i + 1] in self.CONVERT_UP:
-                        new_next_note = self.CONVERT_UP[scale[i + 1]]
+                    if scale[i + 1] in CONVERT_UP:
+                        new_next_note = CONVERT_UP[scale[i + 1]]
                         scale[i + 1] = new_next_note
                 elif scale[i][0] == scale[i + 1][0]:
-                    if scale[i] in self.CONVERT_DOWN:
-                        new_current_note = self.CONVERT_DOWN[scale[i]]
+                    if scale[i] in CONVERT_DOWN:
+                        new_current_note = CONVERT_DOWN[scale[i]]
                     else:
                         print(scale[i])
                     # If changing the current note makes it the same
@@ -597,8 +434,8 @@ class KeySignature:
                     if new_current_note[0] != scale[i - 1][0]:
                         scale[i] = new_current_note
                     else:
-                        if scale[i + 1] in self.CONVERT_UP:
-                            new_next_note = self.CONVERT_UP[scale[i + 1]]
+                        if scale[i + 1] in CONVERT_UP:
+                            new_next_note = CONVERT_UP[scale[i + 1]]
                             scale[i + 1] = new_next_note
         else:
             # Convert to preferred accidental.
@@ -619,13 +456,13 @@ class KeySignature:
         if convert_up:
             for i in range(len(scale)):
                 if "x" in scale[i]:
-                    scale[i] = self.CONVERT_UP[scale[i]]
+                    scale[i] = CONVERT_UP[scale[i]]
                 if scale[i] in EQUIVALENT_FLATS:
                     scale[i] = EQUIVALENT_FLATS[scale[i]]
         elif convert_down:
             for i in range(len(scale)):
                 if len(scale[i]) > 2:
-                    scale[i] = self.CONVERT_DOWN[scale[i]]
+                    scale[i] = CONVERT_DOWN[scale[i]]
                 if scale[i] in EQUIVALENT_SHARPS:
                     scale[i] = EQUIVALENT_SHARPS[scale[i]]
         return scale
@@ -846,17 +683,17 @@ class KeySignature:
                     self.note_names[self.find_flat_index(EQUIVALENT_FLATS[pitch_name])],
                     0,
                 )
-            if pitch_name in self.EQUIVALENTS:
-                if "#" in self.EQUIVALENTS[pitch_name][0]:
+            if pitch_name in EQUIVALENTS:
+                if "#" in EQUIVALENTS[pitch_name][0]:
                     return (
                         self.note_names[
-                            self.find_sharp_index(self.EQUIVALENTS[pitch_name][0])
+                            self.find_sharp_index(EQUIVALENTS[pitch_name][0])
                         ],
                         0,
                     )
                 return (
                     self.note_names[
-                        self.find_flat_index(self.EQUIVALENTS[pitch_name][0])
+                        self.find_flat_index(EQUIVALENTS[pitch_name][0])
                     ],
                     0,
                 )
@@ -868,10 +705,10 @@ class KeySignature:
                 if note_name is not None:
                     return note_name, 0
             else:
-                if "#" in pitch_name and pitch_name in self.SOLFEGE_SHARP:
-                    return self.note_names[self.SOLFEGE_SHARP.index(pitch_name)], 0
-                if pitch_name in self.SOLFEGE_FLAT:
-                    return self.note_names[self.SOLFEGE_FLAT.index(pitch_name)], 0
+                if "#" in pitch_name and pitch_name in SOLFEGE_SHARP:
+                    return self.note_names[SOLFEGE_SHARP.index(pitch_name)], 0
+                if pitch_name in SOLFEGE_FLAT:
+                    return self.note_names[SOLFEGE_FLAT.index(pitch_name)], 0
 
         if original_notation == CUSTOM_NAME:
             # Look for a Custom name
@@ -892,7 +729,7 @@ class KeySignature:
                     if i > len(self.note_names):
                         i = 0
                     return self.note_names[i], 0
-                if pitch_name in self.SCALAR_NAMES_FLAT:
+                if pitch_name in SCALAR_NAMES_FLAT:
                     i = self.custom_notes.index(stripped_pitch)
                     i -= 1
                     if i > 0:
@@ -908,10 +745,10 @@ class KeySignature:
                 if note_name is not None:
                     return note_name, 0
             else:
-                if "#" in pitch_name and pitch_name in self.EAST_INDIAN_SHARP:
-                    return self.note_names[self.EAST_INDIAN_SHARP.index(pitch_name)], 0
-                if pitch_name in self.EAST_INDIAN_FLAT:
-                    return self.note_names[self.EAST_INDIAN_FLAT.index(pitch_name)], 0
+                if "#" in pitch_name and pitch_name in EAST_INDIAN_SHARP:
+                    return self.note_names[EAST_INDIAN_SHARP.index(pitch_name)], 0
+                if pitch_name in EAST_INDIAN_FLAT:
+                    return self.note_names[EAST_INDIAN_FLAT.index(pitch_name)], 0
 
         if original_notation == SCALAR_MODE_NUMBER:
             # Look for a scalar mode number
@@ -920,10 +757,10 @@ class KeySignature:
                 if note_name is not None:
                     return note_name, 0
             else:
-                if "#" in pitch_name and pitch_name in self.SCALAR_NAMES_SHARP:
-                    return self.note_names[self.SCALAR_NAMES_SHARP.index(pitch_name)], 0
-                if pitch_name in self.SCALAR_NAMES_FLAT:
-                    return self.note_names[self.SCALAR_NAMES_FLAT.index(pitch_name)], 0
+                if "#" in pitch_name and pitch_name in SCALAR_NAMES_SHARP:
+                    return self.note_names[SCALAR_NAMES_SHARP.index(pitch_name)], 0
+                if pitch_name in SCALAR_NAMES_FLAT:
+                    return self.note_names[SCALAR_NAMES_FLAT.index(pitch_name)], 0
 
         print("Pitch name %s not found." % pitch_name)
         return pitch_name, -1
@@ -1019,7 +856,7 @@ class KeySignature:
             return self._convert_from_note_name(note_name, self.solfege_notes)
 
         return self._find_moveable(
-            note_name, self.SOLFEGE_SHARP, self.SOLFEGE_FLAT, prefer_sharps
+            note_name, SOLFEGE_SHARP, SOLFEGE_FLAT, prefer_sharps
         )
 
     def generic_note_name_to_east_indian_solfege(self, note_name, prefer_sharps=True):
@@ -1035,7 +872,7 @@ class KeySignature:
             )
 
         return self._find_moveable(
-            note_name, self.EAST_INDIAN_SHARP, self.EAST_INDIAN_FLAT, prefer_sharps
+            note_name, EAST_INDIAN_SHARP, EAST_INDIAN_FLAT, prefer_sharps
         )
 
     def generic_note_name_to_scalar_mode_number(self, note_name, prefer_sharps=True):
@@ -1049,7 +886,7 @@ class KeySignature:
             return self._convert_from_note_name(note_name, self.scalar_mode_numbers)
 
         return self._find_moveable(
-            note_name, self.SCALAR_NAMES_SHARP, self.SCALAR_NAMES_FLAT, prefer_sharps
+            note_name, SCALAR_NAMES_SHARP, SCALAR_NAMES_FLAT, prefer_sharps
         )
 
     def generic_note_name_to_custom_note_name(self, note_name):
