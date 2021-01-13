@@ -11,8 +11,6 @@
 # License along with this library; if not, write to the Free Software
 # Foundation, 51 Franklin Street, Suite 500 Boston, MA 02110-1335 USA
 
-import re
-
 from musicutils import strip_accidental, normalize_pitch, get_pitch_type
 from musicutils import (
     PITCH_LETTERS,
@@ -1005,8 +1003,6 @@ class KeySignature:
         """
         starting_pitch = normalize_pitch(starting_pitch)
         original_notation = self.pitch_name_type(starting_pitch)
-
-        mode_length = self.get_mode_length()
         delta_octave = 0
         if self.number_of_semitones == 12:
             if original_notation == LETTER_NAME:
@@ -1320,11 +1316,9 @@ class KeySignature:
         half_steps = []
         for i in range(len(self.half_steps)):
             half_steps.append(str(self.half_steps[i]))
-        hs = " ".join(half_steps)
         scale = " ".join(self.scale)
         if len(self.key) > 1:
             key = "%s%s" % (self.key[0].upper(), self.key[1:])
         else:
             key = self.key.upper()
-        # return "%s %s [%s] [%s]" % (key, self.mode.upper(), hs, scale)
         return "%s %s [%s]" % (key, self.mode.upper(), scale)

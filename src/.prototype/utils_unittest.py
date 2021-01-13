@@ -16,12 +16,11 @@ Unit tests for musicutils
 
 import unittest
 
-import os
 from temperament import Temperament
 from keysignature import KeySignature, Scale
 from musicutils import normalize_pitch, display_pitch, strip_accidental, get_pitch_type
-from musicutils import SHARP, FLAT
 from musicutils import (
+    SHARP,
     GENERIC_NOTE_NAME,
     LETTER_NAME,
     SOLFEGE_NAME,
