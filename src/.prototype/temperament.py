@@ -1,4 +1,7 @@
 # -*- coding: utf-8 -*-
+"""
+Temperament defines the relationships between notes.
+"""
 
 # Copyright (c) 2020, 2021 Walter Bender, Sugar Labs
 #
@@ -327,7 +330,7 @@ class Temperament:
 
     def get_freqs(self):
         """
-        freqs is the list of all of the frequencies in the temperament. 
+        freqs is the list of all of the frequencies in the temperament.
 
         Returns
         -------
@@ -539,7 +542,7 @@ class Temperament:
         ----------
         intervals : list
             An ordered list of interval names to define per octave
-            
+
         ratios : dict
             A dictionary of ratios to apply when generating the note
             frequencies in an octave. The dictionary keys are defined
