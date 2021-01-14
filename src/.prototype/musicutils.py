@@ -1,4 +1,7 @@
 # -*- coding: utf-8 -*-
+"""
+Utilities and constants
+"""
 
 # Copyright (c) 2020, 2021 Walter Bender, Sugar Labs
 #
@@ -288,9 +291,7 @@ def normalize_pitch(pitch):
     str
         Normalized pitch name
     """
-    if type(pitch) == int:
-        return pitch
-    elif type(pitch) == float:
+    if isinstance(pitch, (int, float)):
         return pitch
     pitch = pitch.lower()
     pitch = pitch.replace(SHARP, "#")
@@ -316,21 +317,19 @@ def display_pitch(pitch):
         Pretty pitch name
     """
     # Ignore pitch numbers and pitch expressed as Hertz
-    if type(pitch) == int:
+    if isinstance(pitch, (int, float)):
         return pitch
-    elif type(pitch) == float:
-        return pitch
-    display_pitch = pitch[0].upper()
+    pitch_to_display = pitch[0].upper()
     if len(pitch) > 2 and pitch[1:2] == "bb":
-        display_pitch += DOUBLEFLAT
+        pitch_to_display += DOUBLEFLAT
     elif len(pitch) > 1:
-        if "#" == pitch[1]:
-            display_pitch += SHARP
-        elif "x" == pitch[1].lower():
-            display_pitch += DOUBLESHARP
-        elif "b" == pitch[1].lower():
-            display_pitch += FLAT
-    return display_pitch
+        if pitch[1] == "#":
+            pitch_to_display += SHARP
+        elif pitch[1].lower() == "x":
+            pitch_to_display += DOUBLESHARP
+        elif pitch[1].lower() == "b":
+            pitch_to_display += FLAT
+    return pitch_to_display
 
 
 def is_a_sharp(pitch_name):
