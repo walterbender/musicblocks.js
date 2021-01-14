@@ -62,7 +62,7 @@ class MusicUtilsTestCase(unittest.TestCase):
         self.assertTrue(
             compare_scales(
                 s.get_scale(
-                    format=[
+                    pitch_format=[
                         "c",
                         "c#",
                         "d",

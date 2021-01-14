@@ -13,7 +13,7 @@
 
 import math
 
-from musicutils import normalize_pitch, NOTES_SHARP, NOTES_FLAT
+from musicutils import normalize_pitch, CHROMATIC_NOTES_SHARP, CHROMATIC_NOTES_FLAT
 
 
 class Temperament:
@@ -260,10 +260,10 @@ class Temperament:
             New base frequency for C0
         """
         pitch_name = normalize_pitch(pitch_name)
-        if pitch_name in NOTES_SHARP:
-            i = NOTES_SHARP.index(pitch_name)
-        elif pitch_name in NOTES_FLAT:
-            i = NOTES_FLAT.index(pitch_name)
+        if pitch_name in CHROMATIC_NOTES_SHARP:
+            i = CHROMATIC_NOTES_SHARP.index(pitch_name)
+        elif pitch_name in CHROMATIC_NOTES_FLAT:
+            i = CHROMATIC_NOTES_FLAT.index(pitch_name)
         else:
             print("pitch %s not found." % pitch_name)
             return

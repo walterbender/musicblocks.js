@@ -16,8 +16,8 @@ FLAT = "♭"
 NATURAL = "♮"
 DOUBLESHARP = "𝄪"
 DOUBLEFLAT = "𝄫"
-NOTES_SHARP = ["c", "c#", "d", "d#", "e", "f", "f#", "g", "g#", "a", "a#", "b"]
-NOTES_FLAT = ["c", "db", "d", "eb", "e", "f", "gb", "g", "ab", "a", "bb", "b"]
+CHROMATIC_NOTES_SHARP = ["c", "c#", "d", "d#", "e", "f", "f#", "g", "g#", "a", "a#", "b"]
+CHROMATIC_NOTES_FLAT = ["c", "db", "d", "eb", "e", "f", "gb", "g", "ab", "a", "bb", "b"]
 SCALAR_MODE_NUMBERS = ["1", "2", "3", "4", "5", "6", "7"]
 SOLFEGE_NAMES = ["do", "re", "me", "fa", "sol", "la", "ti"]
 EAST_INDIAN_NAMES = ["sa", "re", "ga", "ma", "pa", "dha", "ni"]
@@ -333,14 +333,96 @@ def display_pitch(pitch):
     return display_pitch
 
 
+def is_a_sharp(pitch_name):
+    """
+    Is the pitch a sharp or not flat?
+
+    Parameters
+    ----------
+    pitch_name : str
+        The pitch name to test
+
+    Returns
+    -------
+    boolean
+        Result of the test
+    """
+    return pitch_name.endswith("#") or pitch_name in PITCH_LETTERS
+
+
+def find_sharp_index(pitch_name):
+    """
+    Return the index value of the pitch name
+
+    Parameters
+    ----------
+    pitch_name : str
+        The pitch name to test
+
+    Returns
+    -------
+    int
+        Index into the chromatic scale with sharp notes
+    """
+    if pitch_name in CHROMATIC_NOTES_SHARP:
+        return CHROMATIC_NOTES_SHARP.index(pitch_name)
+    if pitch_name in CONVERT_UP:
+        new_pitch_name = CONVERT_UP[pitch_name]
+        if new_pitch_name in CHROMATIC_NOTES_SHARP:
+            return CHROMATIC_NOTES_SHARP.index(new_pitch_name)
+    print("Could not find sharp index for", pitch_name)
+    return 0
+
+
+def is_a_flat(pitch_name):
+    """
+    Is the pitch a flat or not sharp?
+
+    Parameters
+    ----------
+    pitch_name : str
+        The pitch name to test
+
+    Returns
+    -------
+    boolean
+        Result of the test
+    """
+    return pitch_name.endswith("b") or pitch_name in PITCH_LETTERS
+
+
+def find_flat_index(pitch_name):
+    """
+    Return the index value of the pitch name
+
+    Parameters
+    ----------
+    pitch_name : str
+        The pitch name to test
+
+    Returns
+    -------
+    int
+        Index into the chromatic scale with sharp notes
+    """
+    if pitch_name in CHROMATIC_NOTES_FLAT:
+        return CHROMATIC_NOTES_FLAT.index(pitch_name)
+    if pitch_name in CONVERT_DOWN:
+        new_pitch_name = CONVERT_DOWN[pitch_name]
+        if new_pitch_name in CHROMATIC_NOTES_FLAT:
+            return CHROMATIC_NOTES_FLAT.index(new_pitch_name)
+    print("Could not find flat index for", pitch_name)
+    return 0
+
+
 def get_pitch_type(pitch_name):
     """
     Pitches can be specified as a letter name, a solfege name, etc.
     """
     pitch_name = normalize_pitch(pitch_name)
-    if pitch_name in NOTES_SHARP:
+    if pitch_name in CHROMATIC_NOTES_SHARP:
         return LETTER_NAME
-    if pitch_name in NOTES_FLAT:
+    if pitch_name in CHROMATIC_NOTES_FLAT:
         return LETTER_NAME
     if pitch_name in EQUIVALENT_SHARPS:
         return LETTER_NAME
