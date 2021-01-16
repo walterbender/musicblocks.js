@@ -259,7 +259,9 @@ class KeySignature:
                 starting_index=i, number_of_semitones=number_of_semitones
             )
         else:
-            self._scale = Scale(half_steps_pattern=self.half_steps, starting_index=i)
+            self._scale = Scale(
+                half_steps_pattern=self.half_steps, starting_index=i
+            )
 
         self.generic_scale = self._scale.get_scale()
         self.number_of_semitones = self._scale.get_number_of_semitones()
@@ -336,7 +338,7 @@ class KeySignature:
             sharps, flats, and naturals
         """
         # At this point, the scale includes the first note of the next
-        # octave. Hence, for example, the Latin modes hve 8 notes.
+        # octave. Hence, for example, the Latin modes have 8 notes.
         if len(scale) < 9:
             # Convert to preferred accidental.
             if not self._prefer_sharps(self.key, self.mode) and "#" in self.key:
