@@ -22,7 +22,7 @@ from musicutils import (
     is_a_sharp,
     is_a_flat,
     find_sharp_index,
-    find_flat_index
+    find_flat_index,
 )
 from musicutils import (
     PITCH_LETTERS,
@@ -48,7 +48,7 @@ from musicutils import (
     EQUIVALENT_FLATS,
     EQUIVALENT_SHARPS,
     CONVERT_DOWN,
-    CONVERT_UP
+    CONVERT_UP,
 )
 
 
@@ -259,9 +259,7 @@ class KeySignature:
                 starting_index=i, number_of_semitones=number_of_semitones
             )
         else:
-            self._scale = Scale(
-                half_steps_pattern=self.half_steps, starting_index=i
-            )
+            self._scale = Scale(half_steps_pattern=self.half_steps, starting_index=i)
 
         self.generic_scale = self._scale.get_scale()
         self.number_of_semitones = self._scale.get_number_of_semitones()
@@ -434,7 +432,10 @@ class KeySignature:
                 return_list.append(source_list[j])
             else:
                 # Some letters are repeated, so we need the accidentals.
-                return_list.append(source_list[j] + ["bb", "b", "", "#", "x"][strip_accidental(self.scale[i])[1] + 2])
+                return_list.append(
+                    source_list[j]
+                    + ["bb", "b", "", "#", "x"][strip_accidental(self.scale[i])[1] + 2]
+                )
         return_list[-1] = return_list[0]
         return return_list
 
@@ -618,7 +619,9 @@ class KeySignature:
             # Catch cb, bx, etc.
             if pitch_name in EQUIVALENT_SHARPS:
                 return (
-                    self.note_names[CHROMATIC_NOTES_SHARP.index(EQUIVALENT_SHARPS[pitch_name])],
+                    self.note_names[
+                        CHROMATIC_NOTES_SHARP.index(EQUIVALENT_SHARPS[pitch_name])
+                    ],
                     0,
                 )
             if pitch_name in EQUIVALENT_FLATS:
@@ -629,15 +632,11 @@ class KeySignature:
             if pitch_name in EQUIVALENTS:
                 if "#" in EQUIVALENTS[pitch_name][0]:
                     return (
-                        self.note_names[
-                            find_sharp_index(EQUIVALENTS[pitch_name][0])
-                        ],
+                        self.note_names[find_sharp_index(EQUIVALENTS[pitch_name][0])],
                         0,
                     )
                 return (
-                    self.note_names[
-                        find_flat_index(EQUIVALENTS[pitch_name][0])
-                    ],
+                    self.note_names[find_flat_index(EQUIVALENTS[pitch_name][0])],
                     0,
                 )
 

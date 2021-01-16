@@ -20,7 +20,9 @@ class Scale:
     A scale is a selection of notes in an octave.
     """
 
-    def __init__(self, half_steps_pattern=None, starting_index=0, number_of_semitones=12):
+    def __init__(
+        self, half_steps_pattern=None, starting_index=0, number_of_semitones=12
+    ):
         """
         When defining a scale, we need the half steps pattern that defines
         the selection anf a starting note, e.g., C or F#,

@@ -19,8 +19,45 @@ FLAT = "♭"
 NATURAL = "♮"
 DOUBLESHARP = "𝄪"
 DOUBLEFLAT = "𝄫"
-CHROMATIC_NOTES_SHARP = ["c", "c#", "d", "d#", "e", "f", "f#", "g", "g#", "a", "a#", "b"]
+CHROMATIC_NOTES_SHARP = [
+    "c",
+    "c#",
+    "d",
+    "d#",
+    "e",
+    "f",
+    "f#",
+    "g",
+    "g#",
+    "a",
+    "a#",
+    "b",
+]
 CHROMATIC_NOTES_FLAT = ["c", "db", "d", "eb", "e", "f", "gb", "g", "ab", "a", "bb", "b"]
+# Meantone temperaments use 21 notes
+ALL_NOTES = [
+    "c",
+    "c#",
+    "db",
+    "d",
+    "d#",
+    "eb",
+    "e",
+    "e#",
+    "fb",
+    "f",
+    "f#",
+    "gb",
+    "g",
+    "g#",
+    "ab",
+    "a",
+    "a#",
+    "bb",
+    "b",
+    "b#",
+    "cb",
+]
 SCALAR_MODE_NUMBERS = ["1", "2", "3", "4", "5", "6", "7"]
 SOLFEGE_NAMES = ["do", "re", "me", "fa", "sol", "la", "ti"]
 EAST_INDIAN_NAMES = ["sa", "re", "ga", "ma", "pa", "dha", "ni"]

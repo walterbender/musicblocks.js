@@ -272,7 +272,9 @@ class Temperament:
             return
 
         if self.ratios is not None and self.intervals is not None:
-            self.base_frequency = (frequency / 2 ** octave) / self.ratios[self.intervals[i]]
+            self.base_frequency = (frequency / 2 ** octave) / self.ratios[
+                self.intervals[i]
+            ]
             self.generate(self.name)
         return
 
