@@ -25,6 +25,7 @@ from musicutils import (
     find_flat_index,
 )
 from musicutils import (
+    ALL_NOTES,
     PITCH_LETTERS,
     CHROMATIC_NOTES_SHARP,
     CHROMATIC_NOTES_FLAT,
@@ -259,7 +260,11 @@ class KeySignature:
                 starting_index=i, number_of_semitones=number_of_semitones
             )
         else:
-            self._scale = Scale(half_steps_pattern=self.half_steps, starting_index=i)
+            self._scale = Scale(
+                half_steps_pattern=self.half_steps,
+                starting_index=i,
+                number_of_semitones=number_of_semitones,
+            )
 
         self.generic_scale = self._scale.get_scale()
         self.number_of_semitones = self._scale.get_number_of_semitones()
@@ -283,7 +288,10 @@ class KeySignature:
             self._assign_scalar_mode_numbers()
         else:
             self.note_names = self._scale.get_note_names()
-            self.scale = self._scale.get_scale()
+            if len(self.note_names) == 21:
+                self.scale = self._scale.get_scale(pitch_format=ALL_NOTES)
+            else:
+                self.scale = self._scale.get_scale()
             if isinstance(self.key, int):
                 self.key = self.note_names
             self.solfege_notes = []
@@ -579,7 +587,7 @@ class KeySignature:
     def pitch_name_type(self, pitch_name):
         """
         Check pitch type, including test for custom names
-        
+
         Parameters
         ----------
         pitch_name : str
@@ -609,6 +617,10 @@ class KeySignature:
         # Maybe it is already a generic name.
         if original_notation == GENERIC_NOTE_NAME:
             return pitch_name, 0
+
+        if self.number_of_semitones == 21:
+            if pitch_name in ALL_NOTES:
+                return self.note_names[ALL_NOTES.index(pitch_name)], 0
 
         if original_notation == LETTER_NAME:
             # Look for a letter name, e.g., g# or ab
@@ -719,6 +731,8 @@ class KeySignature:
             return note_name, 0
         if is_a_flat(note_name):
             return note_name, 0
+        if self.number_of_semitones == 21:
+            return ALL_NOTES[self.note_names.index(note_name)], 0
         if self.number_of_semitones != 12:
             print("Cannot convert %s to a letter name." % note_name)
             return note_name, -1
@@ -1002,12 +1016,18 @@ class KeySignature:
             print("Cannot find %s in note names." % starting_pitch)
             return starting_pitch, 0, -1
 
+        if self.number_of_semitones == 21 and starting_pitch in ALL_NOTES:
+            i = ALL_NOTES.index(starting_pitch)
+            i += number_of_half_steps
+            i, delta_octave = self._map_to_semitone_range(i, delta_octave)
+            return ALL_NOTES[i], delta_octave, 0
         stripped_pitch, delta = strip_accidental(starting_pitch)
         if stripped_pitch in self.note_names:
             i = self.note_names.index(stripped_pitch)
             i += number_of_half_steps
             i, delta_octave = self._map_to_semitone_range(i + delta, delta_octave)
             return self.note_names[i], delta_octave, 0
+
         print("Cannot find %s in note names." % starting_pitch)
         return starting_pitch, 0, -1
 

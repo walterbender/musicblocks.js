@@ -392,6 +392,20 @@ class MusicUtilsTestCase(unittest.TestCase):
             392.0,
         )
 
+        print("Testing meantone scales")
+        ks = KeySignature(mode=[], number_of_semitones=21)
+        self.assertEqual(ks.closest_note("cb")[0], "cb")
+        self.assertEqual(ks.semitone_transform("gb", 1)[0], "g")
+        self.assertEqual(ks.semitone_transform("cb", 3)[0], "db")
+        self.assertEqual(ks.semitone_transform("c", -3)[0], "b")
+        ks = KeySignature(mode=[3, 3, 3, 3, 3, 3, 3], number_of_semitones=21)
+        self.assertEqual(ks.closest_note("cb")[0], "b")
+        print(ks.closest_note("cb"))
+        self.assertEqual(ks.closest_note("db")[0], "d")
+        print(ks.closest_note("c#"))
+        self.assertEqual(ks.closest_note("c#")[0], "d")
+        self.assertEqual(ks.scalar_transform("c", 1)[0], "d")
+
     def print_scales_test(self):
         ks = KeySignature(key="c", mode="ionian")
         print(ks)
