@@ -1016,12 +1016,44 @@ class KeySignature:
             print("Cannot find %s in note names." % starting_pitch)
             return starting_pitch, 0, -1
 
-        if self.number_of_semitones == 21 and starting_pitch in ALL_NOTES:
-            i = ALL_NOTES.index(starting_pitch)
-            i += number_of_half_steps
-            i, delta_octave = self._map_to_semitone_range(i, delta_octave)
-            return ALL_NOTES[i], delta_octave, 0
+        def __calculate_increment(delta, j):
+            """
+            Do we skip the accidental?
+            """
+            if delta == 0 and j % 3 == 2:
+                return 2
+            elif delta == 1 and j % 3 == 1:
+                return 2
+            elif delta == -1 and j % 3 == 2:
+                return 2
+            else:
+                return 1
+
         stripped_pitch, delta = strip_accidental(starting_pitch)
+        # If there are 21 semitones, assume c, c#, db, d, d#,
+        # eb... but still go from c# to d or db to c.
+        if self.number_of_semitones == 21:
+            if starting_pitch in ALL_NOTES:
+                i = ALL_NOTES.index(starting_pitch)
+                if number_of_half_steps > 0:
+                    for j in range(number_of_half_steps):
+                        i += __calculate_increment(delta, j)
+                else:
+                    for j in range(-number_of_half_steps):
+                        i -= __calculate_increment(delta, j)
+                i, delta_octave = self._map_to_semitone_range(i, delta_octave)
+                return ALL_NOTES[i], delta_octave, 0
+            elif stripped_pitch in self.note_names:
+                i = self.note_names.index(stripped_pitch)
+                if number_of_half_steps > 0:
+                    for j in range(number_of_half_steps):
+                        i += __calculate_increment(delta, j)
+                else:
+                    for j in range(-number_of_half_steps):
+                        i -= __calculate_increment(delta, j)
+                i, delta_octave = self._map_to_semitone_range(i, delta_octave)
+                return self.note_names[i], delta_octave, 0
+
         if stripped_pitch in self.note_names:
             i = self.note_names.index(stripped_pitch)
             i += number_of_half_steps
