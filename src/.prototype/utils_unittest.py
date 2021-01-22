@@ -50,6 +50,52 @@ def round(f, d):
 
 
 class MusicUtilsTestCase(unittest.TestCase):
+    def current_note_test(self):
+        print("CURRENT NOTE TESTS")
+        t = Temperament()
+        ks = KeySignature()
+        self.assertEqual(
+            round(
+                t.get_freq_by_generic_note_name_and_octave(
+                    ks.convert_to_generic_note_name("g")[0], 4
+                ),
+                100,
+            ),
+            392.0,
+        )
+        self.assertEqual(
+            round(
+                t.get_freq_by_generic_note_name_and_octave(
+                    ks.convert_to_generic_note_name(ks.scalar_transform("c", 4)[0])[0],
+                    4,
+                ),
+                100,
+            ),
+            392.0,
+        )
+        result = ks.scalar_transform("c", -3)
+        note = ks.convert_to_generic_note_name(result[0])[0]
+        octave = 5 + result[1]
+        self.assertEqual(
+            round(
+                t.get_freq_by_generic_note_name_and_octave(note, octave),
+                100,
+            ),
+            392.0,
+        )
+        self.assertEqual(
+            round(
+                t.get_freq_by_generic_note_name_and_octave(
+                    ks.convert_to_generic_note_name(ks.semitone_transform("a", -2)[0])[
+                        0
+                    ],
+                    4,
+                ),
+                100,
+            ),
+            392.0,
+        )
+
     def scale_test(self):
         print("SCALE TESTS")
         print("c major")
