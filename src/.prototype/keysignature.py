@@ -460,13 +460,13 @@ class KeySignature:
         """
         self.solfege_notes = []
 
-        if self.number_of_semitones != 12:
-            # TODO: We should make an exception for temperaments of 24
-            # quartertones.
-            print("No solfege for temperaments with more than 12 semitones.")
-            return
-
-        self.solfege_notes = self._mode_map_list(SOLFEGE_NAMES)
+        if self.number_of_semitones == 12 or self.number_of_semitones == 21:
+            self.solfege_notes = self._mode_map_list(SOLFEGE_NAMES)
+        else:
+            print(
+                "No Solfege for temperaments with %d semitones."
+                % self.number_of_semitones
+            )
 
     def _assign_east_indian_solfege_note_names(self):
         """
@@ -475,13 +475,13 @@ class KeySignature:
         """
         self.east_indian_solfege_notes = []
 
-        if self.number_of_semitones != 12:
-            # TODO: We should make an exception for temperaments of 24
-            # quartertones.
-            print("No solfege for temperaments with more than 12 semitones.")
-            return
-
-        self.east_indian_solfege_notes = self._mode_map_list(EAST_INDIAN_NAMES)
+        if self.number_of_semitones == 12 or self.number_of_semitones == 21:
+            self.east_indian_solfege_notes = self._mode_map_list(EAST_INDIAN_NAMES)
+        else:
+            print(
+                "No EI Solfege for temperaments with %d semitones."
+                % self.number_of_semitones
+            )
 
     def _assign_scalar_mode_numbers(self):
         """
@@ -490,13 +490,13 @@ class KeySignature:
         """
         self.scalar_mode_numbers = []
 
-        if self.number_of_semitones != 12:
-            # TODO: We should make an exception for temperaments of 24
-            # quartertones.
-            print("No mode numbers for temperaments with more than 12 semitones.")
-            return
-
-        self.scalar_mode_numbers = self._mode_map_list(SCALAR_MODE_NUMBERS)
+        if self.number_of_semitones == 12 or self.number_of_semitones == 21:
+            self.scalar_mode_numbers = self._mode_map_list(SCALAR_MODE_NUMBERS)
+        else:
+            print(
+                "No mode numbers for temperaments with %d semitones."
+                % self.number_of_semitones
+            )
 
     def get_scale(self):
         """
@@ -770,7 +770,6 @@ class KeySignature:
             # Add back in the appropriate accidental
             delta += distance
             return target_note + ["bb", "b", "", "#", "x"][delta + 2], 0
-            return target_note, -1
 
         print("Note name %s not found." % note_name)
         return note_name, -1
@@ -1022,12 +1021,11 @@ class KeySignature:
             """
             if delta == 0 and j % 3 == 2:
                 return 2
-            elif delta == 1 and j % 3 == 1:
+            if delta == 1 and j % 3 == 1:
                 return 2
-            elif delta == -1 and j % 3 == 2:
+            if delta == -1 and j % 3 == 2:
                 return 2
-            else:
-                return 1
+            return 1
 
         stripped_pitch, delta = strip_accidental(starting_pitch)
         # If there are 21 semitones, assume c, c#, db, d, d#,
@@ -1043,7 +1041,7 @@ class KeySignature:
                         i -= __calculate_increment(delta, j)
                 i, delta_octave = self._map_to_semitone_range(i, delta_octave)
                 return ALL_NOTES[i], delta_octave, 0
-            elif stripped_pitch in self.note_names:
+            if stripped_pitch in self.note_names:
                 i = self.note_names.index(stripped_pitch)
                 if number_of_half_steps > 0:
                     for j in range(number_of_half_steps):
