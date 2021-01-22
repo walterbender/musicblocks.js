@@ -158,7 +158,7 @@ class MusicUtilsTestCase(unittest.TestCase):
         self.assertFalse(ks.note_in_scale("g#"))
         self.assertEqual(ks.closest_note("cb")[0], "b")
         self.assertTrue(ks.note_in_scale("cb"))
-        self.assertEqual(ks.closest_note("db")[0], "d")
+        self.assertEqual(ks.closest_note("db")[0], "c")
         self.assertFalse(ks.note_in_scale("db"))
         self.assertEqual(ks.closest_note("n10#")[0], "n11")
         self.assertEqual(ks.closest_note("n10x")[0], "n0")
@@ -169,7 +169,7 @@ class MusicUtilsTestCase(unittest.TestCase):
         print("scalar transforms")
         self.assertEqual(ks.scalar_transform("c", 2)[0], "e")
         self.assertEqual(ks.scalar_transform("c", 2)[1], 0)  # no change to octave
-        self.assertEqual(ks.scalar_transform("c#", 2)[0], "f#")
+        self.assertEqual(ks.scalar_transform("c#", 2)[0], "f")
 
         print("semitone transforms")
         self.assertEqual(ks.semitone_transform("c", 2)[0], "d")
@@ -399,11 +399,9 @@ class MusicUtilsTestCase(unittest.TestCase):
         self.assertEqual(ks.semitone_transform("cb", 3)[0], "d")
         self.assertEqual(ks.semitone_transform("c", -3)[0], "bb")
         ks = KeySignature(mode=[3, 3, 3, 3, 3, 3, 3], number_of_semitones=21)
-        self.assertEqual(ks.closest_note("cb")[0], "b")
-        print(ks.closest_note("cb"))
+        self.assertEqual(ks.closest_note("cb")[0], "c")
         self.assertEqual(ks.closest_note("db")[0], "d")
-        print(ks.closest_note("c#"))
-        self.assertEqual(ks.closest_note("c#")[0], "d")
+        self.assertEqual(ks.closest_note("c#")[0], "c")
         self.assertEqual(ks.scalar_transform("c", 1)[0], "d")
 
     def print_scales_test(self):

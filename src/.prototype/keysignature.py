@@ -1123,21 +1123,17 @@ class KeySignature:
         """
         starting_pitch = normalize_pitch(starting_pitch)
         original_notation = self.pitch_name_type(starting_pitch)
-
         prefer_sharps = "#" in starting_pitch
         # The calculation is done in the generic note namespace
         generic_pitch = self.convert_to_generic_note_name(starting_pitch)[0]
-
         # First, we need to find the closest note to our starting
         # pitch.
         closest_index, distance, error = self.closest_note(generic_pitch)[1:]
         if error < 0:
             return starting_pitch, 0, error
-
         # Next, we add the scalar interval -- the steps are in the
         # scale.
         new_index = closest_index + number_of_scalar_steps
-
         # We also need to determine if we will be travelling more than
         # one octave.
         mode_length = self.get_mode_length()
@@ -1164,7 +1160,7 @@ class KeySignature:
         if distance == 0:
             return new_note, delta_octave
         i = self.note_names.index(generic_new_note)
-        i, delta_octave = self._map_to_scalar_range(i + distance, delta_octave)
+        i, delta_octave = self._map_to_scalar_range(i - distance, delta_octave)
         return (
             self._restore_format(self.note_names[i], original_notation, prefer_sharps),
             delta_octave,
@@ -1240,32 +1236,18 @@ class KeySignature:
         if target in self.note_names:
             idx = self.note_names.index(target)
             # Look up for a note in the scale.
-            distance = self.number_of_semitones
-            n = 1
+            distance = self.number_of_semitones  # max distance
+            n = 0
             for i in range(self.get_mode_length()):
-                if i < idx + 1:
-                    continue
-                if self.note_names[i] in self.generic_scale:
-                    closest_note = self.note_names[i]
+                ii = self.note_names.index(self.generic_scale[i])
+                n = ii - idx
+                m = ii + self.number_of_semitones - idx
+                if abs(n) < abs(distance):
+                    closest_note = self.generic_scale[i]
                     distance = n
-                    break
-                n += 1
-            # Look down.
-            n = 1
-            for i in range(idx):
-                if self.note_names[idx - i] in self.generic_scale:
-                    if n < distance:
-                        return (
-                            self._restore_format(
-                                self.note_names[idx - i],
-                                original_notation,
-                                prefer_sharps,
-                            ),
-                            self.generic_scale.index(self.note_names[idx - i]),
-                            -n,
-                            0,
-                        )
-                    n += 1
+                if abs(m) < abs(distance):
+                    closest_note = self.generic_scale[i]
+                    distance = m
             if distance < self.number_of_semitones:
                 return (
                     self._restore_format(
