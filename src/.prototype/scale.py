@@ -20,8 +20,27 @@ class Scale:
     A scale is a selection of notes in an octave.
     """
 
+    TWELVE2TWENTYONE = {
+        "n0": ["n0", "n0"],  # c
+        "n1": ["n1", "n2"],  # c#, db
+        "n2": ["n3", "n3"],  # d
+        "n3": ["n4", "n5"],  # d# eb
+        "n4": ["n6", "n6"],  # e
+        "n5": ["n9", "n9"],  # f
+        "n6": ["n10", "n11"],  # f#, gb
+        "n7": ["n12", "n12"],  # g
+        "n8": ["n13", "n14"],  # g#, ab
+        "n9": ["n15", "n15"],  # a
+        "n10": ["n16", "n17"],  # a#, bb
+        "n11": ["n18", "n18"],  # b
+    }
+
     def __init__(
-        self, half_steps_pattern=None, starting_index=0, number_of_semitones=12
+        self,
+        half_steps_pattern=None,
+        starting_index=0,
+        number_of_semitones=12,
+        prefer_sharps=True,
     ):
         """
         When defining a scale, we need the half steps pattern that defines
@@ -40,8 +59,12 @@ class Scale:
             in a 12-step temperament
 
         number_of_semitones : int
-            If the half_steps_pattern is an empty list, then the number of
-            semitones instead
+            If the half_steps_pattern is an empty list, then use the number
+            of semitones instead. (Or trigger a mapping from 12 to 21.)
+
+        prefer_sharps : boolean
+            If we are mapping from 12 to 21 semitones, we need to know
+            whether or not to prefer sharps or flats.
         """
 
         # Calculate the number of semitones by summing up the half
@@ -72,6 +95,25 @@ class Scale:
                 i -= self.number_of_semitones
             self.scale.append(self.note_names[i])
             self.octave_deltas.append(octave)
+
+        # We defined the number of semitones based on the half
+        # steps pattern but we may want to map from a 12 step
+        # scale to anotther scale, e.g. 21 step scale.
+        if (
+            self.number_of_semitones != number_of_semitones
+            and number_of_semitones == 21
+        ):
+            if prefer_sharps:
+                j = 0
+            else:
+                j = 1
+            for i, note in enumerate(self.scale):
+                self.scale[i] = self.TWELVE2TWENTYONE[note][j]
+            # And regenerate the semitone scale
+            self.number_of_semitones = number_of_semitones
+            self.note_names = []
+            for i in range(self.number_of_semitones):
+                self.note_names.append("n%d" % i)
 
     def get_number_of_semitones(self):
         """

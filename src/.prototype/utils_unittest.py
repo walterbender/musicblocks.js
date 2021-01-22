@@ -403,6 +403,14 @@ class MusicUtilsTestCase(unittest.TestCase):
         self.assertEqual(ks.closest_note("db")[0], "d")
         self.assertEqual(ks.closest_note("c#")[0], "c")
         self.assertEqual(ks.scalar_transform("c", 1)[0], "d")
+        ks = KeySignature(number_of_semitones=21)
+        self.assertEqual(ks.closest_note("cb")[0], "c")
+        self.assertEqual(ks.closest_note("db")[0], "d")
+        self.assertEqual(ks.closest_note("c#")[0], "c")
+        self.assertEqual(ks.scalar_transform("c", 1)[0], "d")
+        ks = KeySignature(key="bb", mode="lydian", number_of_semitones=21)
+        self.assertEqual(ks.closest_note("bb")[0], "bb")
+        self.assertEqual(ks.closest_note("n18")[0], "n17")
 
     def print_scales_test(self):
         ks = KeySignature(key="c", mode="ionian")

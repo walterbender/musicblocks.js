@@ -217,6 +217,7 @@ class KeySignature:
             The number of semitones defined in the temperament
         """
 
+        prefer_sharps = True
         if isinstance(mode, str):
             mode = mode.lower()
             # Some mode names imply a specific key.
@@ -234,11 +235,13 @@ class KeySignature:
         elif isinstance(mode, list):
             self.mode = "custom"  # We could look for a match
             self.half_steps = mode
+
         self.key = key
         i = 0
         if isinstance(self.key, str):
             key = normalize_pitch(key)
-            if self._prefer_sharps(self.key, self.mode) or "#" in self.key:
+            prefer_sharps = self._prefer_sharps(self.key, self.mode) or "#" in self.key
+            if prefer_sharps:
                 if self.key not in CHROMATIC_NOTES_SHARP:
                     self.key = EQUIVALENT_SHARPS[self.key]
                 i = find_sharp_index(self.key)
@@ -264,6 +267,7 @@ class KeySignature:
                 half_steps_pattern=self.half_steps,
                 starting_index=i,
                 number_of_semitones=number_of_semitones,
+                prefer_sharps=prefer_sharps,
             )
 
         self.generic_scale = self._scale.get_scale()
