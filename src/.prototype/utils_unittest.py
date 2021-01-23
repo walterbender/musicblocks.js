@@ -17,7 +17,9 @@ Unit tests for musicutils
 import unittest
 
 from temperament import Temperament
-from keysignature import KeySignature, Scale
+from keysignature import KeySignature
+from scale import Scale
+from currentpitch import CurrentPitch
 from musicutils import normalize_pitch, display_pitch, strip_accidental, get_pitch_type
 from musicutils import (
     SHARP,
@@ -52,48 +54,22 @@ def round(f, d):
 class MusicUtilsTestCase(unittest.TestCase):
     def current_note_test(self):
         print("CURRENT NOTE TESTS")
-        t = Temperament()
-        ks = KeySignature()
+        cp = CurrentPitch()
+        
         self.assertEqual(
-            round(
-                t.get_freq_by_generic_note_name_and_octave(
-                    ks.convert_to_generic_note_name("g")[0], 4
-                ),
-                100,
-            ),
-            392.0,
+            round(cp.get_freq(), 100), 392.0,
         )
+        self.assertEqual(cp.get_generic_name(), "n7")
+
+        cp.scalar_transposition(1)
+        self.assertEqual(cp.get_generic_name(), "n9")
         self.assertEqual(
-            round(
-                t.get_freq_by_generic_note_name_and_octave(
-                    ks.convert_to_generic_note_name(ks.scalar_transform("c", 4)[0])[0],
-                    4,
-                ),
-                100,
-            ),
-            392.0,
+            round(cp.get_freq(), 100), 440.0,
         )
-        result = ks.scalar_transform("c", -3)
-        note = ks.convert_to_generic_note_name(result[0])[0]
-        octave = 5 + result[1]
+        cp.semitone_transposition(-2)
+        self.assertEqual(cp.get_generic_name(), "n7")
         self.assertEqual(
-            round(
-                t.get_freq_by_generic_note_name_and_octave(note, octave),
-                100,
-            ),
-            392.0,
-        )
-        self.assertEqual(
-            round(
-                t.get_freq_by_generic_note_name_and_octave(
-                    ks.convert_to_generic_note_name(ks.semitone_transform("a", -2)[0])[
-                        0
-                    ],
-                    4,
-                ),
-                100,
-            ),
-            392.0,
+            round(cp.get_freq(), 100), 392.0,
         )
 
     def scale_test(self):

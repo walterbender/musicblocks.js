@@ -352,6 +352,38 @@ class Temperament:
         """
         return self.generic_note_names
 
+    def get_note_name(self, semitone_index):
+        """
+        Return the generic note name associated with an index.
+
+        Parameters
+        __________
+        semitone_index : int
+            Index into generic note names that define an octave
+
+        Returns
+        -------
+        str
+           The corresponding note name
+        """
+        return self.generic_note_names[semitone_index]
+
+    def get_modal_index(self, note_name):
+        """
+        Return the index associated with a generic note name.
+
+        Parameters
+        __________
+        note_name : str
+           The corresponding note name
+
+        Returns
+        -------
+        int
+            Index into generic note names that define an octave
+        """
+        return self.generic_note_names.index(note_name)
+
     def get_freq_by_index(self, pitch_index):
         """
         Parameters
